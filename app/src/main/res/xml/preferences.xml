@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="Préférences">
+
+    <PreferenceCategory android:title="Réseaux">
+        <ListPreference
+            android:id="@+id/pref_reseau"
+            android:defaultValue="0"
+            android:dialogTitle="@string/default_network"
+            android:key="pref_reseau"
+            android:title="@string/default_network" />
+
+        <ListPreference
+            android:id="@+id/pref_service"
+            android:defaultValue="-1"
+            android:dialogTitle="@string/default_service"
+            android:key="pref_service"
+            android:entries="@array/serviceEntries"
+            android:entryValues="@array/serviceValues"
+            android:title="@string/default_service" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Carte">
+        <ListPreference
+            android:id="@+id/pref_map_type"
+            android:defaultValue="Normale"
+            android:dialogTitle="@string/map_type"
+            android:entries="@array/listOptions"
+            android:entryValues="@array/listValues"
+            android:key="pref_map_type"
+            android:title="@string/map_type" />
+    </PreferenceCategory>
+</PreferenceScreen>

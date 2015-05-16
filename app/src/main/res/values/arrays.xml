@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <string-array name="listOptions">
+        <item>Normale</item>
+        <item>Hybride</item>
+        <item>Satellite</item>
+    </string-array>
+
+    <string-array name="listValues">
+        <item>Normale</item>
+        <item>Hybride</item>
+        <item>Satellite</item>
+    </string-array>
+
+    <string-array name="serviceValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string-array name="serviceEntries">
+        <item>Bus</item>
+        <item>Vélo</item>
+        <item>Voiture electrique</item>
+    </string-array>
+
+    <string-array name="calendar_items">
+        <item>Dimanche</item>
+        <item>Lundi</item>
+        <item>Mardi</item>
+        <item>Mercredi</item>
+        <item>Jeudi</item>
+        <item>Vendredi</item>
+        <item>Samedi</item>
+    </string-array>
+
+    <string-array name="modes_available">
+        <item>Bus</item>
+        <item>Vélo</item>
+    </string-array>
+</resources>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        Application name
+    -->
+    <string name="app_name">GreenWav\'</string>
+    <string name="app_name_subtitle">Transports en Commun</string>
+
+
+    <string name="option">Options</string>
+    <string name="app_id">367316096764556</string>
+
+    <!--
+        Application terms
+    -->
+    <string name="confirm">Confirmer</string>
+    <string name="cancel">Annuler</string>
+    <string name="ok">Ok</string>
+
+    <!--
+        Bus vocabulary
+     -->
+    <string name="network">Réseau</string>
+    <string name="line">Ligne</string>
+    <string name="stop">Arret</string>
+
+    <!--
+        Activity titles
+    -->
+    <string name="activity_about">A Propos</string>
+    <string name="activity_home">GreenWav\'</string>
+    <string name="activity_line">Ligne</string>
+    <string name="activity_stop">Arrets</string>
+    <string name="activity_network">Selection du réseau</string>
+    <string name="activity_schedule">Horaires</string>
+    <string name="activity_preferences">Preferences</string>
+    <string name="activity_cost">Coûts</string>
+    <string name="activity_configuration">Configuration</string>
+    <string name="activity_car">Bornes électriques</string>
+    <string name="activity_bike">Vélos</string>
+
+    <!--
+        Preferences vocabulary
+    -->
+    <string name="map_type">Type de carte</string>
+    <string name="default_network">Réseau par défaut</string>
+    <string name="default_service">Service par défaut</string>
+    <string name="bus">Bus</string>
+    <string name="bike">Vélo</string>
+    <string name="car">Voiture électrique</string>
+
+    <!--
+        User actions
+    -->
+    <string name="action_search">Rechercher</string>
+    <string name="action_settings">Réglages</string>
+    <string name="action_download_all_schedules">Télécharger toutes les horaires de cette ligne</string>
+
+    <string name="add_to_favorite">Ajouter aux favoris</string>
+    <string name="remove_from_favorite">Retirer des favoris</string>
+
+    <string name="i_use_bikes">J\'utilise les vélos</string>
+    <string name="i_own_an_electrical_car">Je possède un véhicule électrique</string>
+
+    <string name="lets_go">C\'est parti</string>
+    <string name="done">J\'ai fini</string>
+
+    <!--
+        Application actions
+    -->
+    <string name="downloading_network">Téléchargement du Réseau de \u0020</string>
+    <string name="downloading_line">Téléchargement de la ligne \u0020</string>
+    <string name="downloading_route">Téléchargement de la route</string>
+    <string name="downloading_stop">Téléchargement des arrets du réseau de \u0020</string>
+    <string name="downloading_schedules">Téléchargement des horaires</string>
+    <string name="downloading_borne">Téléchargement des bornes</string>
+    <string name="network_configuraion">Configuration du réseau de </string>
+    <string name="configuration">Configuration ... Veuillez patienter.</string>
+    <string name="it_might_take_some_time">Cette opération peut prendre un certain temps. \u0020</string>
+    <string name="checking_updates">Vérification des mises à jour</string>
+    <string name="connexion_to_greenwav">Connexion aux services GreenWav</string>
+    <string name="connexion_required">Connexion requise</string>
+    <string name="download">Télécharger</string>
+
+    <string name="error">Erreur</string>
+    <string name="download_failed">Le téléchargement a échoué</string>
+
+    <string name="loading">Chargement</string>
+    <string name="calculating_nearest_stop">Calcul de l\'arret le plus proche</string>
+    <string name="looking_for_network_locally">Recherche des réseaux dans le téléphone</string>
+
+    <string name="no_schedules">Pas d\'horaires</string>
+    <string name="minutes">minutes</string>
+
+    <!--
+        Route vocabulary
+        -->
+    <string name="position">Position</string>
+    <string name="destination">Destination</string>
+    <string name="look_for">Recherche dans un rayon de \u0020</string>
+    <string name="meters"> mètres</string>
+    <string name="walk_to">Marcher jusqu\'à \u0020</string>
+    <string name="walk_time"> minutes de marche</string>
+    <string name="approximately">Environ \u0020</string>
+    <string name="take_bus">Prendre le bus de la ligne \u0020</string>
+    <string name="walk_out">Descendre à \u0020</string>
+    <string name="nearest_stop_distance">Arret le plus proche : Distance \u0020</string>
+    <string name="search_radius">Rayon de recherche</string>
+    <string name="toward">Vers </string>
+    <string name="no_line">Pas de ligne</string>
+    <string name="no_network">Pas de Réseau</string>
+    <string name="no_service">Pas de service</string>
+
+    <!--
+        Bike terms
+    -->
+    <string name="bike_place">Emplacement</string>
+
+
+    <!--
+        Navigation drawer terms
+    -->
+    <string name="modes">Modes</string>
+    <string name="preferences">Préférences</string>
+    <string name="mode_not_activated">Module non activé</string>
+    <string name="do_you_want_to_configure">Voulez-vous configurer les modules de \u0020</string>
+    <string name="configure">Configurer</string>
+
+    <!--
+        Navigation Modes
+    -->
+    <string name="normal_mode">Mode Normal</string>
+    <string name="route_mode">Mode Itinéraire</string>
+
+    <!--
+        Cards types
+    -->
+    <string name="place">Place</string>
+    <string name="event">Evenement</string>
+    <string name="bus_stop">Arret de Bus</string>
+    <string name="bar">Bar</string>
+    <string name="concert">Concert</string>
+
+    <!--
+        Google API
+    -->
+    <string name="google_api_key">AIzaSyBsz0DDdPRpVToNdXYzyLoopHDvec1NkhA</string>
+    <string name="normal_map">Normale</string>
+
+    <!--
+        Other
+    -->
+    <string name="contact">wavon.contact@gmail.com</string>
+
+
+</resources>

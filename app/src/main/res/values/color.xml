@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <color name="primary">#18AB60</color>
+    <color name="primary_dark">#333222</color>
+    <color name="accent_light">#4BB9C3</color>
+
+    <color name="accent_splash">#3F51B5</color>
+
+
+    <color name="white_text">#FFFFFF</color>
+    <color name="divider">#50FFFFFF</color>
+
+    <color name="light_blue">#e3f2fd</color>
+
+    <color name="light_text">#40000000</color>
+
+    <color name="text">#87000000</color>
+
+</resources>
