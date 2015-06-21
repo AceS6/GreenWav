@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -48,7 +49,8 @@ public class JamboDAO {
     // ----- ligne
     public static final String LIGNE = "ligne";
     public static final String LIGNE_ID = "id";
-    public static final String LIGNE_NOM = "nom";
+    public static final String LIGNE_NUMERO = "numero";
+    public static final String LIGNE_DESCRIPTION = "description";
     public static final String LIGNE_COULEUR = "couleur";
     public static final String LIGNE_RESEAU = "reseau";
     public static final String LIGNE_ETAT = "etat";
@@ -280,7 +282,7 @@ public class JamboDAO {
 
     public long insertLigne(Line line) {
         long ret = 0;
-        HashMap<String, Route> routes = null;
+        ArrayList<Route> routes = null;
 
         if (line != null) {
 
@@ -288,7 +290,8 @@ public class JamboDAO {
 
             ContentValues values = new ContentValues();
             values.put(LIGNE_ID, line.getIdBdd());
-            values.put(LIGNE_NOM, line.getNumero());
+            values.put(LIGNE_NUMERO, line.getNumero());
+            values.put(LIGNE_DESCRIPTION, line.getDescription());
             values.put(LIGNE_COULEUR, line.getColor());
             values.put(LIGNE_RESEAU, line.getReseau());
             values.put(LIGNE_ETAT, line.getState());
@@ -296,38 +299,36 @@ public class JamboDAO {
 
             // On insere les routes de la lignes
             routes = line.getRoutes();
-            Iterator<Route> itRoute = routes.values().iterator();
+            Iterator<Route> itRoute = routes.iterator();
             while (itRoute.hasNext()) {
                 insertRoute(itRoute.next());
             }
 
-            Log.d(line.getNom(), "=====> JAMBO : Insertion ligne");
+            Log.d(line.getDescription(), "=====> JAMBO : Insertion ligne");
 
         }
         return ret;
     }
 
-    public HashMap<Integer, Line> findLignes(int reseau) {
-        HashMap<Integer, Line> ret = new HashMap<Integer, Line>();
+    public ArrayList<Line> findLignes(int reseau) {
+        ArrayList<Line> ret = new ArrayList<Line>();
         Line tmp = null;
         int tmpId, tmpFavoris, tmpEtat, tmpDownload;
-        String tmpNom, tmpCouleur;
+        String tmpNum, tmpDesc, tmpCouleur;
 
         if (reseau != 0) {
-            Cursor c = db.query(LIGNE, new String[]{LIGNE_ID, LIGNE_NOM, LIGNE_COULEUR, LIGNE_FAVORIS, LIGNE_ETAT, LIGNE_DOWNLOAD}, LIGNE_RESEAU + " LIKE '" + reseau + "'", null, null, null, null);
+            Cursor c = db.query(LIGNE, new String[]{LIGNE_ID, LIGNE_NUMERO, LIGNE_DESCRIPTION, LIGNE_COULEUR, LIGNE_FAVORIS, LIGNE_ETAT, LIGNE_DOWNLOAD}, LIGNE_RESEAU + " LIKE '" + reseau + "'", null, null, null, null);
 
             while (c.moveToNext()) {
                 tmpId = c.getInt(0);
-                tmpNom = c.getString(1);
-                tmpCouleur = c.getString(2);
-                tmpFavoris = c.getInt(3);
-                tmpEtat = c.getInt(4);
-                tmpDownload = c.getInt(5);
-                tmp = new Line(tmpId, tmpNom, tmpCouleur, reseau, tmpFavoris, tmpEtat, tmpDownload);
-
-                //tmp.setRoutes(findRoutes(tmpId));
-
-                ret.put(tmpId, tmp);
+                tmpNum = c.getString(1);
+                tmpDesc = c.getString(2);
+                tmpCouleur = c.getString(3);
+                tmpFavoris = c.getInt(4);
+                tmpEtat = c.getInt(5);
+                tmpDownload = c.getInt(6);
+                tmp = new Line(tmpId, tmpNum, tmpDesc, tmpCouleur, reseau, tmpFavoris, tmpEtat, tmpDownload);
+                ret.add(tmp);
             }
             c.close();
         }
@@ -424,8 +425,8 @@ public class JamboDAO {
     }
 
 
-    public HashMap<String, Route> findRoutes(int line) {
-        HashMap<String, Route> ret = new HashMap<String, Route>();
+    public ArrayList<Route> findRoutes(int line) {
+        ArrayList<Route> ret = new ArrayList<Route>();
         Route tmp = null;
         int tmpId, tmpLigne;
         String tmpNom;
@@ -439,8 +440,8 @@ public class JamboDAO {
                 tmpNom = c.getString(2);
 
                 tmp = new Route(tmpId, tmpLigne, tmpNom);
-                tmp.setStop(findAssociateArrets(tmp));
-                ret.put(tmpNom, tmp);
+                tmp.setStop(findAssociateArrets(tmp, "ASC"));
+                ret.add(tmp);
             }
             c.close();
         }
@@ -551,7 +552,7 @@ public class JamboDAO {
         long ret = 0;
 
         if (route != null) {
-            ArrayList<Stop> stops = new ArrayList<Stop>(route.getStop().values());
+            ArrayList<Stop> stops = new ArrayList<Stop>(route.getStop());
             Stop tmpStop = null;
             int i = 0;
             int size = stops.size();
@@ -572,8 +573,8 @@ public class JamboDAO {
         return ret;
     }
 
-    public HashMap<Integer, Stop> findAssociateArrets(Route route) {
-        HashMap<Integer, Stop> ret = new HashMap<Integer, Stop>();
+    public ArrayList<Stop> findAssociateArrets(Route route, String order) {
+        ArrayList<Stop> ret = new ArrayList<Stop>();
         Stop tmp = null;
         int tmpId, tmpReseau, tmpFavoris, tmpIdAppartient, tmpPosition, tmpDownload;
         String tmpNom;
@@ -584,7 +585,7 @@ public class JamboDAO {
         if (route != null) {
 
             // On recupere les id des arrets associes a la route
-            Cursor c1 = db.query(APPARTIENT, new String[]{APPARTIENT_ID, APPARTIENT_ROUTE, APPARTIENT_ARRET, APPARTIENT_POSITION, APPARTIENT_DOWNLOAD}, APPARTIENT_ROUTE + " LIKE '" + route.getIdBdd() + "'", null, null, null, null);
+            Cursor c1 = db.query(APPARTIENT, new String[]{APPARTIENT_ID, APPARTIENT_ROUTE, APPARTIENT_ARRET, APPARTIENT_POSITION, APPARTIENT_DOWNLOAD}, APPARTIENT_ROUTE + " LIKE '" + route.getIdBdd() + "'", null, null, null, APPARTIENT_POSITION + " "+order);
             while (c1.moveToNext()) {
 
                 Log.d("" + c1.getInt(2), "=====> JAMBO : Nouvelle association trouvee pour la route " + route.getNom());
@@ -600,9 +601,10 @@ public class JamboDAO {
                     tmpFavoris = c2.getInt(5);
                     tmpIdAppartient = c1.getInt(0);
                     tmpPosition = c1.getInt(3);
+                    Log.d("position="+tmpPosition, "position="+tmpPosition);
                     tmpDownload = c1.getInt(4);
                     tmp = new Stop(tmpId, tmpNom, tmpLatLng, tmpReseau, tmpFavoris, tmpIdAppartient, tmpPosition, tmpDownload);
-                    ret.put(tmpId, tmp);
+                    ret.add(tmp);
 
                     Log.d(tmpNom, "=====> JAMBO : Nouvelle association faite pour la route " + route.getNom());
                 }
@@ -715,8 +717,8 @@ public class JamboDAO {
         return ret;
     }
 
-    public HashMap<Integer, Station> findStation(int reseau) {
-        HashMap<Integer, Station> ret = new HashMap<Integer, Station>();
+    public ArrayList<Station> findStation(int reseau) {
+        ArrayList<Station> ret = new ArrayList<Station>();
         Station tmp = null;
         int tmpId, tmpIdExt;
         String tmpNom, tmpAdresse;
@@ -732,7 +734,7 @@ public class JamboDAO {
                 tmpLatLng = new LatLng(c.getFloat(3), c.getFloat(4));
                 tmpIdExt = c.getInt(6);
                 tmp = new Station(tmpId, tmpNom, tmpAdresse, tmpLatLng, reseau, tmpIdExt);
-                ret.put(tmpId, tmp);
+                ret.add(tmp);
                 Log.d(tmp.getNom() + ", etat = " + ret + ", id = " + tmp.getIdBdd(), "=====> JAMBO : find station");
             }
             c.close();
