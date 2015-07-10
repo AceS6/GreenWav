@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -47,18 +48,14 @@ public class DownloadNetwork extends AsyncTask<Void, String, HashMap<String, Sto
     private Network network;
     private ProgressDialog pd;
     private Context c;
-
-    private HashMap<Integer, Line> lines;
     private boolean bike, car;
 
-    public DownloadNetwork(Context c, Network network, HashMap<Integer, Line> lines, boolean bike, boolean car) {
+    public DownloadNetwork(Context c, Network network, boolean bike, boolean car) {
         this.network = network;
         this.c = c;
         pd = new ProgressDialog(c);
-        this.lines = lines;
         this.bike = bike;
         this.car = car;
-        Log.d(lines.size()+"", "nb lines");
     }
 
     @Override
@@ -79,6 +76,8 @@ public class DownloadNetwork extends AsyncTask<Void, String, HashMap<String, Sto
 
         HashMap<String, Stop> ret = new HashMap<String, Stop>();
         Resources res = c.getResources();
+
+        network = getNetwork(network.getIdBdd());
 
         try {
             JamboDAO dao = new JamboDAO(c);
@@ -103,12 +102,8 @@ public class DownloadNetwork extends AsyncTask<Void, String, HashMap<String, Sto
                 network.setVoiture(0);
             }
 
-            if(lines.size() == 0){
-                network.setBus(0);
-            }
-            else{
                 dao.removeLigne(network.getIdBdd());
-                network.setLignes(lines);    // On recupere toutes les lignes du reseau
+                network.setLignes(getLignes());    // On recupere toutes les lignes du reseau
                 Iterator<Line> it = network.getLignes().values().iterator();    // On assigne a chaque ligne ses arrets
                 while (it.hasNext()) {
                     Line l = it.next();
@@ -117,7 +112,6 @@ public class DownloadNetwork extends AsyncTask<Void, String, HashMap<String, Sto
                 }
                 SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
                 sharedPref.edit().putString("pref_service", "0").apply();
-            }
 
             if (dao.findReseaux().size() == 0) {
                 SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(c).edit();
@@ -142,10 +136,66 @@ public class DownloadNetwork extends AsyncTask<Void, String, HashMap<String, Sto
 
     }
 
-    private HashMap<Integer, Stop> getStops(Route r) throws IOException {
+    private Network getNetwork(int idReseau){
+        StringBuilder jsonResult = new StringBuilder();
+        final String BASE_URL = "http://sauray.me/greenwav/gorilla_network.php?";
+
+        HttpURLConnection conn = null;
+        try {
+            StringBuilder sb = new StringBuilder(BASE_URL);
+            if (idReseau != -1) {
+                sb.append("reseau=" + idReseau);
+            }
+            URL url = new URL(sb.toString());
+            conn = (HttpURLConnection) url.openConnection();
+            InputStreamReader in = new InputStreamReader(conn.getInputStream());
+
+            BufferedReader jsonReader = new BufferedReader(in);
+            String lineIn;
+            while ((lineIn = jsonReader.readLine()) != null) {
+                jsonResult.append(lineIn);
+            }
+
+            JSONObject jsonObj = new JSONObject(jsonResult.toString());
+
+            JSONArray jsonMainNode = jsonObj.optJSONArray("reseau");
+
+            for (int i = 0; i < jsonMainNode.length(); i++) {
+                JSONObject jsonChildNode = jsonMainNode.getJSONObject(i);
+                int visible = jsonChildNode.optInt("visible");
+
+                if(visible != 0) {
+                    int id = jsonChildNode.optInt("id");
+                    String nom = jsonChildNode.optString("nom");
+                    double latitude = jsonChildNode.optDouble("latitude");
+                    double longitude = jsonChildNode.optDouble("longitude");
+                    String image = jsonChildNode.optString("image");
+                    int bus = jsonChildNode.optInt("bus");
+                    int velo = jsonChildNode.optInt("velo");
+                    int voiture = jsonChildNode.optInt("voiture");
+                    int dayByDay = jsonChildNode.optInt("bus_daybyday");
+                    Network network = new Network(id, latitude, longitude, nom, image, bus, velo, voiture, dayByDay);
+                    return network;
+                }
+            }
+
+        } catch (MalformedURLException e) {
+
+        } catch (JSONException e) {
+
+        } catch (IOException e) {
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
+        return null;
+    }
+
+    private ArrayList<Stop> getStops(Route r) throws IOException {
         StringBuilder jsonResult = new StringBuilder();
         final String BASE_URL = "http://sauray.me/greenwav/gorilla_stop.php?";
-        HashMap<Integer, Stop> ret = new HashMap<Integer, Stop>();
+        ArrayList<Stop> ret = new ArrayList<Stop>();
         StringBuilder sb = new StringBuilder(BASE_URL);
         sb.append("route=" + r.getIdBdd());
 
@@ -174,7 +224,7 @@ public class DownloadNetwork extends AsyncTask<Void, String, HashMap<String, Sto
                 int idAppartient = jsonChildNode.optInt("idappartient");
                 int position = jsonChildNode.optInt("position");
                 Stop a = new Stop(id, nom, new LatLng(lat, lng), reseau, 0, idAppartient, position, 0);
-                ret.put(id, a);
+                ret.add(a);
                 network.getArrets().put(id, a);
                 publishProgress(a.toString(), i+"", length+"");
                 Log.d(a.toString(), "Route " + r.toString() + " : Nouvel arret trouve");
@@ -187,8 +237,8 @@ public class DownloadNetwork extends AsyncTask<Void, String, HashMap<String, Sto
         return ret;
     }
 
-    private HashMap<String, Route> getRoutes(Line l){
-        HashMap<String, Route> ret = new HashMap<String, Route>();
+    private ArrayList<Route> getRoutes(Line l){
+        ArrayList<Route> ret = new ArrayList<Route>();
         Resources res = c.getResources();
         StringBuilder jsonResult = new StringBuilder();
         final String BASE_URL = "http://sauray.me/greenwav/gorilla_route.php?";
@@ -217,7 +267,7 @@ public class DownloadNetwork extends AsyncTask<Void, String, HashMap<String, Sto
                     int ligne = jsonChildNode.optInt("ligne");
                     Route r  = new Route(id, ligne, nom);
                     r.setStop(getStops(r));
-                    ret.put(nom, r);
+                    ret.add(r);
                     this.publishProgress(res.getString(R.string.downloading_route) + r.toString());
                 }
         } catch (MalformedURLException e) {

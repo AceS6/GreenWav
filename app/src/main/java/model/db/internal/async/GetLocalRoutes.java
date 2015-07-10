@@ -30,7 +30,7 @@ public class GetLocalRoutes extends AsyncTask<Void, model.Route, Void> {
     protected Void doInBackground(Void... params) {
         JamboDAO dao = new JamboDAO(context);
         dao.open();
-        Iterator<Route> it = dao.findRoutes(line.getIdBdd()).values().iterator();
+        Iterator<Route> it = dao.findRoutes(line.getIdBdd()).iterator();
         while(it.hasNext()){
             publishProgress(it.next());
         }

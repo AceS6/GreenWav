@@ -114,9 +114,9 @@ public class StopActivity extends ActionBarActivity implements AdapterView.OnIte
             nb.setBackgroundColor(Color.parseColor(currentLine.getColor()));
         }
         // specify an adapter (see also next example)
-        adapter = new StopAdapter(this);
+        //adapter = new StopAdapter(this);
         recyclerView.setAdapter(adapter);
-        new GetLocalStops(this, currentRoute, adapter).execute();
+        //new GetLocalStops(this, currentRoute, adapter).execute();
     }
 
     @Override
@@ -166,7 +166,7 @@ public class StopActivity extends ActionBarActivity implements AdapterView.OnIte
     public void run() {
         JamboDAO dao = new JamboDAO(StopActivity.this);
         dao.open();
-        Iterator<Stop> it = dao.findAssociateArrets(currentRoute).values().iterator();
+        Iterator<Stop> it = dao.findAssociateArrets(currentRoute, "ASC").iterator();
         dao.close();
         float distance = 10000000;
         model.Stop nearest = null;

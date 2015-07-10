@@ -16,6 +16,8 @@
         android:layout_height="match_parent"
         android:scrollbars="vertical"
         android:divider="@android:color/primary_text_light"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:dividerHeight="1dp"
         android:clipToPadding="true">
 

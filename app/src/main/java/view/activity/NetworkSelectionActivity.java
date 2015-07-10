@@ -126,7 +126,7 @@ public class NetworkSelectionActivity extends ActionBarActivity {
         recyclerView.setAdapter(adapter);
 
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-        swipeRefreshLayout.setColorSchemeResources(R.color.accent_light);
+        swipeRefreshLayout.setColorSchemeResources(R.color.accent);
     }
 
     private void refreshItems() {

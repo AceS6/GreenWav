@@ -5,9 +5,9 @@
     android:id="@+id/Lyt_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:layout_below="@+id/lyt_main"
-    android:orientation="vertical"
-    android:background="@color/light_blue">
+    android:orientation="vertical">
 
     <include
         layout="@layout/template_toolbar_spinner"

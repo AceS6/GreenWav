@@ -9,10 +9,12 @@ import android.os.Parcelable;
 import com.google.android.gms.maps.model.LatLng;
 import com.greenwav.greenwav.R;
 
+import model.custom.GreenSearch;
+
 /**
  * Created by sauray on 16/03/15.
  */
-public class Event implements Parcelable {
+public class Event implements Parcelable, GreenSearch {
 
     private int id, type;
     private String nom, url;
@@ -89,4 +91,18 @@ public class Event implements Parcelable {
                 }
             };
 
+    @Override
+    public String getInformation() {
+        return nom;
+    }
+
+    @Override
+    public int getDrawable() {
+        return R.drawable.ic_event_black;
+    }
+
+    @Override
+    public int compareTo(GreenSearch another) {
+        return 0;
+    }
 }

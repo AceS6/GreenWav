@@ -76,7 +76,7 @@ public class LineConfigurationAdapter extends RecyclerView.Adapter<RecyclerView.
 
         lineHolder.routes.removeAllViews();
 
-        Iterator<Route> it = l.getRoutes().values().iterator();
+        Iterator<Route> it = l.getRoutes().iterator();
         while(it.hasNext()){
             TextView r = new TextView(activity);
             r.setText(it.next().toString());

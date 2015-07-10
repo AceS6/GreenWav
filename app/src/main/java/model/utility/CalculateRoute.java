@@ -14,7 +14,7 @@ import java.util.Iterator;
 import model.Line;
 import model.Network;
 import model.Stop;
-import view.custom.adapter.BusComponentAdapter;
+import view.custom.adapter.LineAdapter;
 
 /**
  * Copyright 2014 Antoine Sauray
@@ -42,7 +42,7 @@ public class CalculateRoute extends AsyncTask<Integer, Line, ArrayList<Line>> {
     /**
      * The adapter of the list of suggestions
      */
-    private BusComponentAdapter listAdapter;
+    private LineAdapter listAdapter;
 
     // ----------------------------------- Model
     /**

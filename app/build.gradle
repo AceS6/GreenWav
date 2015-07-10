@@ -21,10 +21,10 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:22.1.1'
-    compile 'com.android.support:recyclerview-v7:22.1.1'
-    compile 'com.android.support:cardview-v7:22.1.1'
+    compile 'com.android.support:recyclerview-v7:22.2.0'
     compile project(':android-maps-extensions')
-    compile project(':fab')
-    compile project(':view-pager-indicator')
+    compile 'com.android.support:design:22.2.0'
+    compile 'com.android.support:appcompat-v7:22.2.0'
+    compile 'com.android.support:recyclerview-v7:22.2.0'
+    compile 'com.android.support:cardview-v7:22.2.0'
 }

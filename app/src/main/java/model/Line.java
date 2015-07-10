@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.BitmapDescriptor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 
@@ -26,16 +27,17 @@ public class Line extends BusComponent implements Comparable<BusComponent>, Parc
     // ----------------------------------- Model
     private int idBdd, reseau, favoris, state;
     private boolean favorite, download;
-    private String numero, color;
+    private String numero, description, color;
     private BitmapDescriptor markerColor;
 
     // -- new stuff for Jambo implementation, like a banana
-    private HashMap<String, Route> routes;
+    private ArrayList<Route> routes;
 
     // ----------- CONSTRUCTORS
     public Line(int idBdd, String numero, String direction1, String direction2, String color, int reseau, int favoris, int state) {
         this.idBdd = idBdd;
         this.numero = numero;
+        this.description = direction1+" - "+direction2;
         this.color = color;
         this.reseau = reseau;
         this.state = state;
@@ -45,7 +47,8 @@ public class Line extends BusComponent implements Comparable<BusComponent>, Parc
 
     public Line(int idBdd, String numero, String direction1, String color, int reseau, int favoris, int state) {
         this.idBdd = idBdd;
-        this.numero = numero;;
+        this.numero = numero;
+        description = direction1;
         this.color = color;
         this.reseau = reseau;
         this.state = state;
@@ -53,14 +56,15 @@ public class Line extends BusComponent implements Comparable<BusComponent>, Parc
     }
 
     // ========> NEW CONSTRUCTOR FOR JAMBO
-    public Line(int idBdd, String numero, String color, int reseau, int favoris, int state, int download) {
+    public Line(int idBdd, String numero, String description, String color, int reseau, int favoris, int state, int download) {
         this.idBdd = idBdd;
         this.numero = numero;
+        this.description = description;
         this.color = color;
         this.reseau = reseau;
         this.state = state;
         Log.d("Nouvelle Ligne", this.toString());
-        routes = new HashMap<String, Route>();
+        routes = new ArrayList<Route>();
         this.setFavorite(favoris);
         this.setDownload(download);
     }
@@ -80,8 +84,8 @@ public class Line extends BusComponent implements Comparable<BusComponent>, Parc
         this.idBdd = idBdd;
     }
 
-    public String getNom() {
-        return ("Ligne " + this.numero);
+    public String getDescription() {
+        return description;
     }
 
     public String getNumero() {
@@ -276,14 +280,14 @@ public class Line extends BusComponent implements Comparable<BusComponent>, Parc
         reseau = in.readInt();
         state = in.readInt();
         Bundle extras = in.readBundle(Route.class.getClassLoader());
-        routes = (HashMap<String, Route>) extras.getSerializable("ROUTE");
+        routes = (ArrayList<Route>) extras.getSerializable("ROUTE");
     }
 
-    public HashMap<String, Route> getRoutes() {
+    public ArrayList<Route> getRoutes() {
         return routes;
     }
 
-    public void setRoutes(HashMap<String, Route> routes) {
+    public void setRoutes(ArrayList<Route> routes) {
         this.routes = routes;
     }
 

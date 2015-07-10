@@ -118,7 +118,7 @@ public class FloatingActionsMenu extends ViewGroup {
             }
 
             @Override
-            Drawable getIconDrawable() {
+            public Drawable getIconDrawable() {
                 final RotatingDrawable rotatingDrawable;
                 if (mIcon == 0) {
                     rotatingDrawable = new RotatingDrawable(super.getIconDrawable());

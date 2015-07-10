@@ -9,14 +9,6 @@
     android:translationZ="6dp"
     android:onClick="cardClick">
 
-    <android.support.v7.widget.CardView
-    xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/card_view"
-    android:layout_gravity="center"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    card_view:cardCornerRadius="4dp">
-
 
 <TextView
     android:layout_width="wrap_content"
@@ -24,5 +16,4 @@
     android:padding="15dp"
     android:text="@string/destination" />
 
-    </android.support.v7.widget.CardView>
     </LinearLayout>

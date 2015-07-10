@@ -2,11 +2,12 @@
 <resources>
 
 
-    <color name="primary">#18AB60</color>
-    <color name="primary_dark">#333222</color>
-    <color name="accent_light">#4BB9C3</color>
+    <color name="primary">#009688</color>
+    <color name="primary_dark">#00695C</color>
+    <color name="accent">#EA80FC</color>
+    <color name="orange">#ff5722</color>
 
-    <color name="accent_splash">#3F51B5</color>
+    <color name="accent_splash">#ff3d00</color>
 
 
     <color name="white_text">#FFFFFF</color>

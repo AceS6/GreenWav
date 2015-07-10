@@ -1,12 +1,12 @@
 package view.fragment;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,20 +14,18 @@ import android.widget.CheckBox;
 
 import com.greenwav.greenwav.R;
 
-import java.util.ArrayList;
-
 import model.Line;
 import model.Network;
-import model.db.external.didier.GetLines;
-import model.db.external.didier.GetNetwork;
-import model.db.internal.JamboDAO;
-import view.activity.NetworkConfigurationActivity;
-import view.custom.adapter.LineConfigurationAdapter;
+import model.db.internal.BusActivityCallBack;
+import model.db.internal.async.GetLocalLines;
+import view.activity.BusActivity;
+import view.custom.adapter.LineAdapter;
+import view.custom.callback.LineCallBack;
 
 /**
  * Created by sauray on 14/03/15.
  */
-public class LineFragment extends Fragment{
+public class LineFragment extends Fragment {
 
     // ----------------------------------- UI
     /**
@@ -37,15 +35,15 @@ public class LineFragment extends Fragment{
     /**
      * The list of lines from the current network
      */
-    private LineConfigurationAdapter adapter;
+    private LineAdapter adapter;
 
     private LinearLayoutManager layoutManager;
 
-    private Toolbar toolbar;
-
-    private GetLines async;
-
     private SwipeRefreshLayout swipeRefreshLayout;
+
+    private Line currentLine;
+
+    private BusActivityCallBack callback;
 
 
     // ----------------------------------- Model
@@ -61,12 +59,16 @@ public class LineFragment extends Fragment{
         super.onActivityCreated(savedInstanceState);
         // Indicate that this fragment would like to influence the set of actions in the action bar.
         setHasOptionsMenu(true);
-        toolbar = ((NetworkConfigurationActivity)getActivity()).getToolbar();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_line_configuration, container, false);
+
+        Bundle bundle = getActivity().getIntent().getExtras();
+        currentNetwork = bundle.getParcelable("NETWORK");
+
+        callback = (BusActivity)getActivity();
 
         recyclerView = (RecyclerView) root.findViewById(R.id.list);
 
@@ -80,7 +82,7 @@ public class LineFragment extends Fragment{
         recyclerView.setLayoutManager(layoutManager);
 
         swipeRefreshLayout = (SwipeRefreshLayout) root.findViewById(R.id.swipeRefreshLayout);
-        swipeRefreshLayout.setColorSchemeResources(R.color.accent_light);
+        swipeRefreshLayout.setColorSchemeResources(R.color.accent);
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -89,53 +91,18 @@ public class LineFragment extends Fragment{
                 refreshItems();
             }
         });
+        // use a linear layout manager
+        layoutManager = new LinearLayoutManager(this.getActivity());
+        recyclerView.setLayoutManager(layoutManager);
         // specify an adapter (see also next example)
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                JamboDAO dao = new JamboDAO(LineFragment.this.getActivity());
-                dao.open();
-                adapter = new LineConfigurationAdapter((NetworkConfigurationActivity) LineFragment.this.getActivity(), new ArrayList<Line>(), dao.findLignes(((NetworkConfigurationActivity)getActivity()).getCurrentNetwork().getIdBdd()));
-                recyclerView.setAdapter(adapter);
-                recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
-                    int mLastFirstVisibleItem = 0;
+        adapter = new LineAdapter(this.getActivity(), callback);
 
-                    @Override
-                    public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                    }
+        recyclerView.setAdapter(adapter);
 
-                    @Override
-                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                        super.onScrolled(recyclerView, dx, dy);
-                        final int currentFirstVisibleItem = layoutManager.findFirstVisibleItemPosition();
-                        if (currentFirstVisibleItem > this.mLastFirstVisibleItem) {
-                            hideViews();
-                        } else if (currentFirstVisibleItem < this.mLastFirstVisibleItem) {
-                            showViews();
-                        }
-
-                        this.mLastFirstVisibleItem = currentFirstVisibleItem;
-                    }
-                });
-                refreshItems();
-            }
-        });
-        t.start();
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-
+        //registerForContextMenu(list);
+        new GetLocalLines(this.getActivity(), currentNetwork, adapter).execute();
 
         return root;
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        async.cancel(true);
     }
 
     public void selectAll(){
@@ -155,11 +122,7 @@ public class LineFragment extends Fragment{
     }
 
     private void refreshItems() {
-        int size = adapter.getItemCount();
-        adapter.removeAll();
-        adapter.notifyItemRangeRemoved(0, size);
-        async = new GetLines(((NetworkConfigurationActivity)getActivity()).getCurrentNetwork(), adapter, swipeRefreshLayout);
-        async.execute();
+
     }
 
     public void hideViews() {

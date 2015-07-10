@@ -3,6 +3,7 @@ package model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -14,7 +15,7 @@ public class Route extends BusComponent implements Parcelable{
 
     private int idBdd, ligne;
     private String nom;
-    private HashMap<Integer, Stop> stop;
+    private ArrayList<Stop> stop;
 
 
     // ---------- CONSTRUCTOR
@@ -56,11 +57,11 @@ public class Route extends BusComponent implements Parcelable{
         this.ligne = ligne;
     }
 
-    public HashMap<Integer, Stop> getStop() {
+    public ArrayList<Stop> getStop() {
         return stop;
     }
 
-    public void setStop(HashMap<Integer, Stop> stop) {
+    public void setStop(ArrayList<Stop> stop) {
         this.stop = stop;
     }
 

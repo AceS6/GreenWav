@@ -143,7 +143,7 @@ public class ScheduleActivity extends ActionBarActivity implements AdapterView.O
 
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-        swipeRefreshLayout.setColorSchemeResources(R.color.accent_light);
+        swipeRefreshLayout.setColorSchemeResources(R.color.accent);
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override

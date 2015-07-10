@@ -3,7 +3,10 @@ package view.custom.adapter;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,15 +52,24 @@ public class DrawerAdapter extends ArrayAdapter<Mode>{
         ImageView icon = (ImageView) view.findViewById(R.id.icon);
 
         if(m.isChecked()){
-            icon.setImageDrawable(context.getResources().getDrawable(m.getLightIcon()));
-            icon.setAlpha(1f);
-            view.setBackgroundColor(context.getResources().getColor(R.color.accent_light));
-            tv.setTextColor(Color.WHITE);
+
+            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                Drawable d = context.getResources().getDrawable(m.getDarkIcon(), null);
+                d.setTint(context.getResources().getColor(R.color.accent));
+            }
+            else{
+                icon.setImageDrawable(context.getResources().getDrawable(m.getDarkIcon()));
+            }
+
+            tv.setTextColor(context.getResources().getColor(R.color.accent));
         }
         else{
-            icon.setImageDrawable(context.getResources().getDrawable(m.getDarkIcon()));
-            icon.setAlpha(0.54f);
-            view.setBackgroundColor(Color.WHITE);
+            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                Drawable d = context.getResources().getDrawable(m.getDarkIcon(), null);
+            }
+            else{
+                icon.setImageDrawable(context.getResources().getDrawable(m.getDarkIcon()));
+            }
             tv.setTextColor(context.getResources().getColor(R.color.text));
         }
         return view;

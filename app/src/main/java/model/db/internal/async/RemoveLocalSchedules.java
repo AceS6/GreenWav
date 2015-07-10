@@ -31,9 +31,9 @@ public class RemoveLocalSchedules extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... params) {
         JamboDAO dao = new JamboDAO(context);
         dao.open();
-        Iterator<Route> it = dao.findRoutes(line.getIdBdd()).values().iterator();
+        Iterator<Route> it = dao.findRoutes(line.getIdBdd()).iterator();
         while(it.hasNext()){
-            Iterator<Stop> it2 = dao.findAssociateArrets(it.next()).values().iterator();
+            Iterator<Stop> it2 = dao.findAssociateArrets(it.next(), "ASC").iterator();
             while(it2.hasNext()){
                 dao.removeHoraireByAppartient(it2.next().getIdAppartient());
             }

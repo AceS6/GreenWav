@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.MenuItem;
 
 import com.greenwav.greenwav.R;
-import com.viewpagerindicator.TitlePageIndicator;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -76,10 +75,10 @@ public class NetworkConfigurationActivity extends ActionBarActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        super.setContentView(R.layout.activity_network_configuration);
+        super.setContentView(R.layout.activity_about);
         currentNetwork = getIntent().getExtras().getParcelable("NETWORK");
         initInterface();
-        new GetNetwork(this, currentNetwork).execute();
+        new DownloadNetwork(this, currentNetwork, true, true).execute();
     }
 
 
@@ -184,42 +183,6 @@ public class NetworkConfigurationActivity extends ActionBarActivity{
         }
 
         @Override
-        protected void onPostExecute(Integer[] result) {
-            super.onPostExecute(result);
-            boolean busOk = false, veloOk = false, voitureOk = false;
-
-            // Création de la liste de Fragments que fera défiler le PagerAdapter
-            fragments = new ArrayList<Fragment>();
-
-            if (result[0] != 0) {
-                fragments.add(Fragment.instantiate(NetworkConfigurationActivity.this, LineFragment.class.getName()));
-            }
-
-            if (result[1] != 0) {
-                fragments.add(Fragment.instantiate(NetworkConfigurationActivity.this, BikeFragment.class.getName()));
-            }
-
-            if (result[2] != 0) {
-                fragments.add(Fragment.instantiate(NetworkConfigurationActivity.this, BorneFragment.class.getName()));
-            }
-
-            fragments.add(Fragment.instantiate(NetworkConfigurationActivity.this, FinishConfiguration.class.getName()));
-            // Création de l'adapter qui s'occupera de l'affichage de la liste de
-            // Fragments
-            mPagerAdapter = new GreenPagerAdapter(NetworkConfigurationActivity.this.getSupportFragmentManager(), fragments);
-
-            pager = (ViewPager) NetworkConfigurationActivity.this.findViewById(R.id.viewpager);
-            // Affectation de l'adapter au ViewPager
-            pager.setAdapter(mPagerAdapter);
-
-
-            //Bind the title indicator to the adapter
-            TitlePageIndicator titleIndicator = (TitlePageIndicator) findViewById(R.id.titles);
-            titleIndicator.setViewPager(pager);
-            titleIndicator.setOnPageChangeListener(this);
-        }
-
-        @Override
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
         }
@@ -247,7 +210,7 @@ public class NetworkConfigurationActivity extends ActionBarActivity{
                         };
                         Log.d(usesCar+"", "usesCar");
                         Log.d(usesBike+"", "usesBike");
-                        new DownloadNetwork(NetworkConfigurationActivity.this, currentNetwork, lines, usesBike, usesCar).execute();
+                        //new DownloadNetwork(NetworkConfigurationActivity.this, currentNetwork, lines, usesBike, usesCar).execute();
                     }
                 });
                 builder.setNegativeButton("Annuler", new DialogInterface.OnClickListener() {

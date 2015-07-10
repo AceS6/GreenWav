@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_subheader"
+        android:title="Moyens de transport">
+            <group
+                android:checkableBehavior="single">
+                <item
+                    android:id="@+id/bus_mode"
+                    android:icon="@drawable/ic_directions_bus_black_48dp"
+                    android:title="@string/bus"
+                    android:checked="true"/>
+                <item
+                    android:id="@+id/bike_mode"
+                    android:icon="@drawable/ic_directions_bike_black_48dp"
+                    android:title="@string/bike"/>
+                <item
+                    android:id="@+id/walk_mode"
+                    android:icon="@drawable/ic_directions_walk_black_48dp"
+                    android:title="@string/walk"/>
+                <item
+                    android:id="@+id/electrical_car_mode"
+                    android:icon="@drawable/ic_menu_line_car"
+                    android:title="@string/car"/>
+                <item
+                    android:id="@+id/car_sharing_mode"
+                    android:icon="@drawable/ic_directions_car_black_48dp"
+                    android:title="Covoiturage"/>
+            </group>
+    </item>
+    <item
+        android:id="@+id/option_subheader"
+        android:title="Paramètres">
+        <menu>
+            <item
+                android:id="@+id/network"
+                android:icon="@drawable/ic_navdrawer_areaselection"
+                android:title="@string/network"/>
+            <item
+                android:id="@+id/options"
+                android:icon="@drawable/ic_navdrawer_parameters"
+                android:title="@string/option"/>
+        </menu>
+    </item>
+
+</menu>

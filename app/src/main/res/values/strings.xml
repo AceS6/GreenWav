@@ -49,6 +49,7 @@
     <string name="bus">Bus</string>
     <string name="bike">Vélo</string>
     <string name="car">Voiture électrique</string>
+    <string name="walk">Marche à pied</string>
 
     <!--
         User actions
@@ -126,6 +127,8 @@
     <string name="mode_not_activated">Module non activé</string>
     <string name="do_you_want_to_configure">Voulez-vous configurer les modules de \u0020</string>
     <string name="configure">Configurer</string>
+    <string name="openDrawer">Ouvrir</string>
+    <string name="closeDrawer">Fermer</string>
 
     <!--
         Navigation Modes

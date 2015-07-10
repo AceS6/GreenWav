@@ -15,17 +15,17 @@ import java.util.Iterator;
 
 import model.Borne;
 import model.db.internal.JamboDAO;
-import view.custom.adapter.BorneAdapter;
+import view.custom.adapter.ElectricalAdapter;
 
 public class GetBornes extends AsyncTask<Void, Borne, Void>{
 
     private GoogleMap gMap;
     private int network;
-    private BorneAdapter borneAdapter;
+    private ElectricalAdapter borneAdapter;
     private Activity a;
     private HashMap<Integer, Marker> markers;
 
-    public GetBornes(Activity a, int network, BorneAdapter borneAdapter) {
+    public GetBornes(Activity a, int network, ElectricalAdapter borneAdapter) {
         this.borneAdapter = borneAdapter;
         this.network = network;
         this.a = a;

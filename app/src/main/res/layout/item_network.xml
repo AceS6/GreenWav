@@ -37,7 +37,7 @@
                 android:layout_gravity="right"
                 android:layout_marginBottom="10dp"
                 android:layout_marginRight="10dp"
-                android:textColor="@color/accent_light"
+                android:textColor="@color/accent"
                 android:textSize="16sp"/>
             
             <View

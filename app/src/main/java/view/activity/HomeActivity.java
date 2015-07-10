@@ -2,39 +2,49 @@ package view.activity;
 
 
 import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
-import android.app.AlertDialog;
 import android.app.SearchManager;
+import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v4.widget.CursorAdapter;
+import android.speech.RecognizerIntent;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SearchViewCompat;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.widget.SearchView;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
+import android.util.DisplayMetrics;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.RelativeLayout;
+import android.widget.SearchView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.androidmapsextensions.GoogleMap;
 import com.androidmapsextensions.MapFragment;
@@ -50,24 +60,22 @@ import com.greenwav.greenwav.R;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import model.Borne;
 import model.Event;
 import model.Network;
 import model.PlaceInformation;
-import model.Schedule;
+import model.Route;
 import model.Station;
 import model.Stop;
-import model.db.external.didier.GetBornes;
+import model.User;
 import model.db.external.didier.GetEventImage;
-import model.db.external.didier.GetEvents;
-import model.db.external.didier.GetNextSchedule;
 import model.db.external.didier.GetStationInformations;
-import model.db.external.didier.GetStations;
-import model.db.external.google.AutoCompletion;
 import model.db.internal.JamboDAO;
-import model.utility.NetworkUtil;
-import view.fragment.NavigationDrawerFragment;
+import model.db.internal.async.DisplayBikeStations;
+import view.custom.google.LatLngInterpolator;
+import view.custom.google.MarkerAnimation;
 
 
 /**
@@ -75,25 +83,19 @@ import view.fragment.NavigationDrawerFragment;
  * @author Antoine Sauray
  * @version 2.0
  */
-public class HomeActivity extends ActionBarActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks, OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMapClickListener, View.OnFocusChangeListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener {
+public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMapClickListener, View.OnFocusChangeListener, NavigationView.OnNavigationItemSelectedListener {
 
     // ----------------------------------- UI
 
     /**
      * These variables are used to get result from other activities.
      *
-     * @see BusComponentActivity
+     * @see
      * @see StopActivity
      */
-    private static final int LINE_SELECTION = 1, STOP_SELECTION = 2, STATION_SELECTION = 3, BORNE_SELECTION =4;
-    /**
-     * Unique identifier for this activity
-     */
+    private static final int LINE_SELECTION = 1, STOP_SELECTION = 2, BIKE_SELECTION = 3, ELECTRICAL_SELECTION =4, CARSHARING_SELECTION=5, WALK_SELECTION=6;
+
     private static final String TAG = "HOME_ACTIVITY";
-    /**
-     * Fragment managing the behaviors, interactions and presentation of the navigation drawer
-     */
-    private NavigationDrawerFragment mNavigationDrawerFragment;
     /**
      * Displays the modes available for selection
      */
@@ -119,24 +121,16 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
      * It can show any content a view can show.
      */
     private View bottomSheet;
+
+    private NavigationView navigationView;
     /**
      * The main layout of the activity.
      */
     private RelativeLayout lyt_main;
-    /**
-     * The cursor adapter of the search suggestions
-     */
-    private CursorAdapter cursorAdapter;
+
+    private FloatingActionButton floatingActionButton;
 
     // ----------------------------------- Model
-    /**
-     * the cursor of the search suggestions
-     */
-    private Cursor cursor;
-    /**
-     * The search view. It provides a search function to the user. It uses Google Search API
-     */
-    private SearchView search;
     /**
      * Provides markers on a marker. The key is the marker title attribute
      */
@@ -180,8 +174,17 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
 
     private Marker currentMarker;
 
+    private Route[] routes;
+
     // Informations on current state
     private boolean bottomSheetVisible;
+
+    private RadioButton[] radioButtons;
+
+    private AddMarkers addMarkers;
+
+    private int currentMode;
+    private User currentUser;
 
     // ----------------------------------- Constants
     @Override
@@ -190,14 +193,15 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
         setContentView(R.layout.activity_home);
         Bundle extras = this.getIntent().getExtras();
         currentNetwork = extras.getParcelable("NETWORK");
+        currentUser = new User("Antoine");
         bottomSheetVisible = false;
+        radioButtons = new RadioButton[2];
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         int pref_service = Integer.parseInt(sharedPref.getString("pref_service", "0"));
         sharedPref.edit().putInt("UI", pref_service).apply();
 
         if (currentNetwork != null) {
-            //MapsInitializer.initialize(getApplicationContext());
             initInterface();
             markers = new HashMap<Integer, Marker>();
             suggestions = new ArrayList<PlaceInformation>();
@@ -206,140 +210,22 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
             startActivity(intent);
             this.finish();
         }
+        navigationView = (NavigationView) findViewById(R.id.navigation_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+
+
+        floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
+        floatingActionButton.setBaselineAlignBottom(true);
+
+        currentMode = R.id.bus_mode;
+
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        return super.onOptionsItemSelected(item);
-    }
+    public boolean onSearchRequested() {
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        toolbar.inflateMenu(R.menu.map_menu);
-
-        MenuItem searchMenuItem = menu.findItem(R.id.action_search);
-
-
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        search = (SearchView) MenuItemCompat.getActionView(searchMenuItem);
-        if (search != null) {
-
-            TextView searchText = (TextView) search.findViewById(android.support.v7.appcompat.R.id.search_src_text);
-            searchText.setTextColor(Color.WHITE);
-            searchText.setHintTextColor(Color.WHITE);
-
-            search.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-            search.setOnQueryTextFocusChangeListener(this);
-            search.setOnQueryTextListener(this);
-            search.setOnSuggestionListener(this);
-
-            cursorAdapter = new CursorAdapter(this, null, 0) {
-                @Override
-                public void bindView(View view, Context context, Cursor cursor) {
-                    // TODO Auto-generated method stub
-
-                    TextView name = (TextView) view.findViewById(R.id.text);
-                    name.setTextSize(20);
-                    name.setText(cursor.getString(1));
-                }
-
-                @Override
-                public View newView(Context context, Cursor cursor,
-                                    ViewGroup parent) {
-                    LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-                    View retView = inflater.inflate(R.layout.item_suggestion, parent, false);
-                    ((ImageView)retView.findViewById(R.id.icon)).setAlpha(0.54f);
-                    retView.setBackgroundColor(getResources().getColor(R.color.light_blue));
-                    return retView;
-                }
-
-            };
-            search.setSuggestionsAdapter(cursorAdapter);
-        }
-
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    /**
-     * Called when a new mode has been selected by the user
-     */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    @Override
-    public void onNavigationDrawerItemSelected(final int position) {
-        // update the main content by replacing fragments
-        if(mNavigationDrawerFragment.getModeAvailability(position)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && ui != null) {
-                // Unreveal animation
-                ui.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-                int initialRadius = ui.getMeasuredWidth();
-                Animator anim = ViewAnimationUtils.createCircularReveal(ui,
-                        ui.getMeasuredWidth() / 2,
-                        ui.getMeasuredHeight() / 2,
-                        initialRadius,
-                        0);
-                anim.setDuration(400);
-                anim.addListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        super.onAnimationEnd(animation);
-                        inflateUI(position);
-                    }
-                });
-                anim.start();
-            } else {
-                inflateUI(position);
-            }
-        }
-        else{
-            AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
-            builder.setTitle(R.string.mode_not_activated);
-            builder.setMessage(getResources().getString(R.string.do_you_want_to_configure) + currentNetwork);
-            builder.setPositiveButton(R.string.configure, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    Intent mStartActivity = new Intent(HomeActivity.this, NetworkConfigurationActivity.class);
-                    mStartActivity.putExtra("NETWORK", currentNetwork);
-                    startActivity(mStartActivity);
-                }
-            });
-            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(HomeActivity.this);
-                    int pref_service = Integer.parseInt(sharedPref.getString("pref_service", "0"));
-                    if(mNavigationDrawerFragment.getModeAvailability(mNavigationDrawerFragment.getPreviousPosition())){
-                        mNavigationDrawerFragment.selectItem(mNavigationDrawerFragment.getPreviousPosition());
-                    }
-                    else if(mNavigationDrawerFragment.getModeAvailability(pref_service)){
-                        mNavigationDrawerFragment.selectItem(pref_service);
-                    }
-                    else{
-                        int i=0;
-                        boolean found=false;
-                        while(i < 3 && !found){
-                            if(mNavigationDrawerFragment.getModeAvailability(i)){
-                                found=true;
-                            }
-                            else {
-                                i++;
-                            }
-                        }
-                        if(found){
-                            mNavigationDrawerFragment.selectItem(i);
-                        }
-                        else{
-                            Intent intent = new Intent(HomeActivity.this, NetworkConfigurationActivity.class);
-                            intent.putExtra("NETWORK", currentNetwork);
-                            HomeActivity.this.startActivity(intent);
-                        }
-                    }
-
-                }
-            });
-            AlertDialog alertDialog = builder.create();
-            alertDialog.show();
-        }
-
+        return super.onSearchRequested();
     }
 
     @Override
@@ -349,12 +235,14 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
             case LINE_SELECTION:
                 if (resultCode == RESULT_OK) {
                     currentLine = data.getParcelableExtra("BUS_LINE");
-                    currentRoute = data.getParcelableExtra("BUS_ROUTE");
+                    currentRoute = currentLine.getRoutes().get(0);
+                    addMarkers = new AddMarkers();
+                    addMarkers.execute(true);
                     // Remove UI if a new line has been selected
                     if(bottomSheet != null){
                         bottomSheet.setVisibility(View.INVISIBLE);
                     }
-                    new AddMarkers().execute();
+
                 }
                 break;
             case STOP_SELECTION:
@@ -368,7 +256,7 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
                     }
                 }
                 break;
-            case STATION_SELECTION:
+            case BIKE_SELECTION:
                 if (resultCode == RESULT_OK) {
                     currentStation = data.getParcelableExtra("STATION");
                     Marker marker = markers.get(currentStation.getIdBdd());
@@ -379,7 +267,7 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
                     }
                 }
                 break;
-            case BORNE_SELECTION:
+            case ELECTRICAL_SELECTION:
                 if (resultCode == RESULT_OK) {
                     currentBorne = data.getParcelableExtra("BORNE");
                     Marker marker = markers.get(currentBorne.getIdBdd());
@@ -403,6 +291,7 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
         googleMap.setMyLocationEnabled(true);
         googleMap.setOnInfoWindowClickListener(this);
 
+
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(currentNetwork.getPosition())      // Sets the center of the map to Mountain View
                 .zoom(14)                   // Sets the zoom
@@ -410,27 +299,45 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
                 .build();                   // Creates a CameraPosition from the builder
         googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         googleMap.getUiSettings().setMapToolbarEnabled(false);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(false);
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         int uiId = sharedPref.getInt("UI", -1);
-        mNavigationDrawerFragment.selectItem(uiId);
 
-        new GetEvents(this, currentNetwork.getIdBdd(), googleMap, markers).execute();
+        //new GetEvents(this, currentNetwork.getIdBdd(), googleMap, markers).execute();
     }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
+
+        if(marker.getData() == null){
+            return false;
+        }
+
         currentMarker = marker;
-        bottomSheetVisible = true;
         String snippet = marker.getSnippet();
         lyt_main.removeView(bottomSheet);
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
+
         Class c = marker.getData().getClass();
 
         if(c == Stop.class){
-            currentStop = currentRoute.getStop().get(((Stop) marker.getData()).getIdBdd());
+            currentStop = (Stop) marker.getData();
             bottomSheet = inflater.inflate(R.layout.card_schedule, null);
+
+            radioButtons[0] = (RadioButton) bottomSheet.findViewById(R.id.sens1);
+            radioButtons[1] = (RadioButton) bottomSheet.findViewById(R.id.sens2);
+
+            JamboDAO dao = new JamboDAO(this);
+            dao.open();
+
+            int i=0;
+            List<Route> routes = currentLine.getRoutes();
+            for(Route r : routes){
+                radioButtons[i].setText(r.toString());
+                i++;
+            }
         }
         else if (c == Station.class){
             currentStation = (Station) marker.getData();
@@ -488,31 +395,6 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
     }
 
     @Override
-    public boolean onQueryTextSubmit(String s) {
-        return false;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String s) {
-        new AutoCompletion(this, suggestions, cursorAdapter).execute(s);
-        return true;
-    }
-
-    @Override
-    public boolean onSuggestionSelect(int i) {
-        // TODO Auto-generated method stub
-        cursorAdapter.getCursor().moveToPosition(i);
-        PlaceInformation information = suggestions.get(i);
-        //new GetDetails(this, googleMap, markers).execute(information);
-        return false;
-    }
-
-    @Override
-    public boolean onSuggestionClick(int i) {
-        return onSuggestionSelect(i);
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
 
@@ -534,6 +416,8 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
             googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         }
 
+        /*
+
         lyt_main.removeView(ui);
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         switch (uiId) {
@@ -547,7 +431,8 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
                 ui = inflater.inflate(R.layout.ui_car, null);
                 break;
         }
-        uiReveal();
+        */
+        //uiReveal();
     }
 
     /**
@@ -556,32 +441,42 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
     private void initInterface() {
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle(this.getResources().getString(R.string.activity_home));
+        //toolbar.setTitle(this.getResources().getString(R.string.activity_home));
+        //toolbar.setLogo(R.drawable.ic_directions_bus_black_48dp);
+        //toolbar.getLogo().setAlpha(54);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeButtonEnabled(true);
+
+
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(this,drawerLayout,toolbar,R.string.openDrawer, R.string.closeDrawer){
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                // Code here will be triggered once the drawer closes as we dont want anything to happen so we leave this blank
+                super.onDrawerClosed(drawerView);
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                // Code here will be triggered once the drawer open as we dont want anything to happen so we leave this blank
+
+                super.onDrawerOpened(drawerView);
+            }
+        };
+
+        //Setting the actionbarToggle to drawer layout
+        drawerLayout.setDrawerListener(actionBarDrawerToggle);
+
+        //calling sync state is necessay or else your hamburger icon wont show up
+        actionBarDrawerToggle.syncState();
 
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getExtendedMapAsync(this);
 
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout), currentNetwork);
-
         lyt_main = (RelativeLayout) this.findViewById(R.id.lyt_main);
     }
-
-    public void actionMenu(View v){
-        if(currentMarker != null){
-            currentMarker.hideInfoWindow();
-            cardUnreveal();
-        }
-    }
-
     /**
      * Called when a click on UI element is detected (The low right corner interface)
      */
@@ -591,36 +486,55 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
             v.animate().translationZ(6f);
         }
-
+/*
         switch (v.getId()) {
-            case R.id.lineButton:
-                intent = new Intent(HomeActivity.this, BusComponentActivity.class);
-                intent.putExtra("NETWORK", currentNetwork);
-                this.startActivityForResult(intent, LINE_SELECTION);
-                break;
-            case R.id.stopButton:
 
-                if(currentLine != null && currentRoute != null) {
-                    intent = new Intent(HomeActivity.this, StopActivity.class);
-                    intent.putExtra("BUS_LINE", currentLine);
-                    intent.putExtra("BUS_ROUTE", currentRoute);
-                    intent.putExtra("LOCATION", googleMap.getMyLocation());
-                    this.startActivityForResult(intent, STOP_SELECTION);
+            case R.id.fab:
+                intent = null;
+
+                if(bottomSheetVisible){
+                    intent = new Intent(HomeActivity.this, ScheduleActivity.class);
+                    if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                        intent.putExtra("NETWORK", currentNetwork);
+                        intent.putExtra("BUS_LINE", currentLine);
+                        intent.putExtra("BUS_ROUTE", currentRoute);
+                        intent.putExtra("BUS_STOP", currentStop);
+                        //ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this,
+                        //        new Pair<View, String>(ui.findViewById(R.id.floatingActionButton), "fab"));
+                        this.startActivity(intent);
+                    }
+                    else{
+                        this.startActivity(intent);
+                    }
+                }
+                else{
+                    intent = new Intent(HomeActivity.this, BusActivity.class);
+                    intent.putExtra("NETWORK", currentNetwork);
+                    if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                        //ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this,
+                        //        new Pair<View, String>(ui.findViewById(R.id.floatingActionButton), "fab"));
+                        this.startActivityForResult(intent, LINE_SELECTION//, options.toBundle()
+                        );
+                    }
+                    else{
+                        this.startActivityForResult(intent, LINE_SELECTION);
+                    }
                 }
                 break;
             case R.id.bikeButton:
-                    intent = new Intent(HomeActivity.this, StationActivity.class);
+                    intent = new Intent(HomeActivity.this, BikeActivity.class);
                     intent.putExtra("NETWORK", currentNetwork);
                     intent.putExtra("LOCATION", googleMap.getMyLocation());
-                    this.startActivityForResult(intent, STATION_SELECTION);
+                    this.startActivityForResult(intent, BIKE_SELECTION);
                 break;
             case R.id.borneButton:
-                intent = new Intent(HomeActivity.this, CarActivity.class);
+                intent = new Intent(HomeActivity.this, ElectricalActivity.class);
                 intent.putExtra("NETWORK", currentNetwork);
                 intent.putExtra("LOCATION", googleMap.getMyLocation());
                 this.startActivityForResult(intent, BORNE_SELECTION);
                 break;
         }
+        */
     }
 
     /**
@@ -649,84 +563,64 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
         }
     }
 
-    /**
-     * Called when a button has been selected by the user
-     */
-    public void drawerClick(View v) {
-        Intent intent = null;
-        switch (v.getId()) {
-            case R.id.network:
-                intent = new Intent(HomeActivity.this, NetworkSelectionActivity.class);
-                this.startActivity(intent);
-                break;
-            case R.id.configure:
-                if(NetworkUtil.isConnected(this)) {
-                    intent = new Intent(HomeActivity.this, NetworkConfigurationActivity.class);
-                    intent.putExtra("NETWORK", currentNetwork);
-                    this.startActivity(intent);
-                }
-                else{
-                    Toast.makeText(this, R.string.connexion_required, Toast.LENGTH_SHORT).show();
-                }
-                break;
-            case R.id.preferences:
-                intent = new Intent(HomeActivity.this, PreferencesActivity.class);
-                this.startActivity(intent);
-                break;
+    public void radioClick(View v){
+
+        if(addMarkers != null && addMarkers.getStatus() == AsyncTask.Status.RUNNING){
+            addMarkers.cancel(true);
         }
-    }
-
-    private void inflateUI(int position){
-        lyt_main.removeView(ui);
-        googleMap.clear();
-        markers.clear();
-        suggestions.clear();
-
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        sharedPref.edit().putInt("UI", position).apply();
-
-        cardUnreveal();
-        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        switch (position) {
-            case 0:
-                ui = inflater.inflate(R.layout.ui_bus, null);
-                break;
-            case 1:
-                ui = inflater.inflate(R.layout.ui_bike, null);
-                new GetStations(this, currentNetwork.getIdBdd(), googleMap, markers).execute();
-                break;
-            case 2:
-                ui = inflater.inflate(R.layout.ui_car, null);
-                new GetBornes(this, currentNetwork.getIdBdd(), googleMap, markers).execute();
-                break;
-            default:
-                ui = inflater.inflate(R.layout.ui_bus, null);
-                break;
-        }
-        uiReveal();
+        addMarkers = new AddMarkers();
+        addMarkers.execute();
     }
 
     private void cardReveal(final Class c){
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 200);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 300);
         params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
 
         bottomSheet.setLayoutParams(params);
-        ObjectAnimator animY = ObjectAnimator.ofFloat(bottomSheet, "translationY", 150f, 0f);
+        ObjectAnimator animY = ObjectAnimator.ofFloat(bottomSheet, "translationY", 300f, 0f);
         animY.setDuration(500);//1.5sec
         animY.setRepeatCount(0);
 
-        ObjectAnimator animFloatY = ObjectAnimator.ofFloat(ui, "translationY", -100f);
-        animFloatY.setDuration(500);//1.5sec
-        animFloatY.setRepeatCount(0);
-        animFloatY.start();
+        floatingActionButton.setBaseline(R.id.bottom_sheet);
 
+        bottomSheet.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    switch (currentMode){
+                        case R.id.bus_mode:
+                            Intent intent = new Intent(HomeActivity.this, ScheduleActivity.class);
+                            intent.putExtra("BUS_STOP", currentStop);
+                            intent.putExtra("BUS_ROUTE", currentRoute);
+                            intent.putExtra("BUS_LINE", currentLine);
+                            intent.putExtra("NETWORK", currentNetwork);
+                            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this);
+                                HomeActivity.this.startActivity(intent, options.toBundle()
+                                );
+                            }
+                            else{
+                                HomeActivity.this.startActivity(intent);
+                            }
+                            break;
+                        case R.id.bike_mode:
+                            break;
+                    }
+                    return true;
+                } else if(event.getAction() == MotionEvent.ACTION_MOVE){
+
+                    return true;
+                }
+                return false;
+            }
+        });
         lyt_main.addView(bottomSheet);
-
-        ui.bringToFront();
-
+        bottomSheetVisible = true;
+        floatingActionButton.bringToFront();
         animY.start();
+
         if(c == Stop.class){
-            new GetNextSchedule(HomeActivity.this, currentStop.getIdAppartient(), Schedule.getDayOfWeek(), bottomSheet).execute();
+            //new GetNextSchedule(HomeActivity.this, currentStop.getIdAppartient(), Schedule.getDayOfWeek(), bottomSheet).execute();
         }
         else if(c == Station.class){
             new GetStationInformations(HomeActivity.this, currentStation, currentNetwork, bottomSheet).execute();
@@ -738,104 +632,285 @@ public class HomeActivity extends ActionBarActivity implements NavigationDrawerF
         else if(c == Event.class){
             new GetEventImage(this, currentEvent, bottomSheet).execute();
         }
-
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void cardUnreveal(){
         if(bottomSheet != null && bottomSheetVisible) {
-            ObjectAnimator animYDown = ObjectAnimator.ofFloat(bottomSheet, "translationY", 0f, 200f);
+            ObjectAnimator animYDown = ObjectAnimator.ofFloat(bottomSheet, "translationY", 0f, 300f);
             animYDown.setDuration(500);//1.5sec
             animYDown.setRepeatCount(0);
             animYDown.start();
-
-            ObjectAnimator animFloatY = ObjectAnimator.ofFloat(findViewById(R.id.ui), "translationY", 16f);
-            animFloatY.setDuration(500);//1.5sec
-            animFloatY.setRepeatCount(0);
-            animFloatY.start();
+            bottomSheetVisible = false;
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void uiReveal(){
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
-        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-        lyt_main.addView(ui);
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP && ui.getParent()!=null) {
-            params.rightMargin = 15;
-            params.bottomMargin = 15;
-            ui.setLayoutParams(params);
+    public void toolbarClick(View v) {
 
-            ui.setVisibility(View.INVISIBLE);
-            ui.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-            // get the center for the clipping circle
-            int cx = ui.getMeasuredWidth() / 2;
-            int cy = ui.getMeasuredHeight() / 2;
-            // get the final radius for the clipping circle
-            int finalRadius = Math.max(ui.getMeasuredWidth(), ui.getMeasuredHeight());
-            try {
-                Animator anim = ViewAnimationUtils.createCircularReveal(ui,
-                        cx,
-                        cy,
-                        0,
-                        finalRadius);
-                anim.setDuration(500);
-               ui.setVisibility(View.VISIBLE);
-                anim.start();
-            }
-            catch (IllegalStateException e){
-                ui.setVisibility(View.VISIBLE);
-            }
+                Intent i = new Intent(this, SearchActivity.class);
+
+                if(v.getId() == R.id.speechRecognition){
+                    i.putExtra("SPEECH", true);
+                }
+                else{
+                    i.putExtra("SPEECH", false);
+                }
+
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this,
+                            findViewById(R.id.appBar), "search");
+                    HomeActivity.this.startActivity(i, options.toBundle());
+                }
+                else{
+                    startActivity(i);
+                }
+
+
+    }
+
+    public void fabClick(View v){
+        Intent intent = null;
+        switch (currentMode){
+            case R.id.bus_mode:
+                intent = new Intent(HomeActivity.this, BusActivity.class);
+                intent.putExtra("NETWORK", currentNetwork);
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this);
+                    this.startActivityForResult(intent, LINE_SELECTION, options.toBundle()
+                    );
+                }
+                else{
+                    this.startActivityForResult(intent, LINE_SELECTION);
+                }
+                break;
+            case R.id.bike_mode:
+                intent = new Intent(HomeActivity.this, BikeActivity.class);
+                intent.putExtra("NETWORK", currentNetwork);
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this);
+                    this.startActivityForResult(intent, BIKE_SELECTION, options.toBundle()
+                    );
+                }
+                else{
+                    this.startActivityForResult(intent, BIKE_SELECTION);
+                }
+                break;
+            case R.id.walk_mode:
+                intent = new Intent(HomeActivity.this, WalkActivity.class);
+                intent.putExtra("NETWORK", currentNetwork);
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this);
+                    this.startActivityForResult(intent, WALK_SELECTION, options.toBundle()
+                    );
+                }
+                else{
+                    this.startActivityForResult(intent, WALK_SELECTION);
+                }
+                break;
+            case R.id.electrical_car_mode:
+                intent = new Intent(HomeActivity.this, ElectricalActivity.class);
+                intent.putExtra("NETWORK", currentNetwork);
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this);
+                    this.startActivityForResult(intent, ELECTRICAL_SELECTION, options.toBundle()
+                    );
+                }
+                else{
+                    this.startActivityForResult(intent, ELECTRICAL_SELECTION);
+                }
+                break;
+            case R.id.car_sharing_mode:
+                intent = new Intent(HomeActivity.this, CarSharingActivity.class);
+                intent.putExtra("NETWORK", currentNetwork);
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this);
+                    this.startActivityForResult(intent, CARSHARING_SELECTION, options.toBundle()
+                    );
+                }
+                else{
+                    this.startActivityForResult(intent, CARSHARING_SELECTION);
+                }
+                break;
+        }
+    }
+
+    public void drawerHeaderClick(View v){
+        Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
+        intent.putExtra("USER", currentUser);
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this);
+            startActivity(intent, options.toBundle());
         }
         else{
-            ui.setLayoutParams(params);
-            ObjectAnimator animY = ObjectAnimator.ofFloat(ui, "translationY", 170f, 0f);
-            animY.setDuration(500);//1.5sec
-            animY.setRepeatCount(0);
-            animY.start();
+            startActivity(intent);
         }
     }
 
-    private class AddMarkers extends AsyncTask<Void, Stop, Void>{
+    @Override
+    public boolean onNavigationItemSelected(MenuItem menuItem) {
+        ((DrawerLayout)findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
+        currentMode = menuItem.getItemId();
+        menuItem.setChecked(true);
+        cardUnreveal();
+        googleMap.clear();
+        markers.clear();
+        switch (currentMode){
+            case R.id.bus_mode:
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                    floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_bus_white_48dp, getTheme()));
+                }
+                else{
+                    floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_bus_white_48dp));
+                }
+                break;
+            case R.id.bike_mode:
+                new DisplayBikeStations(this, googleMap, markers, currentNetwork.getIdBdd()).execute();
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                    floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_bike_white_48dp, getTheme()));
+                }
+                else{
+                    floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_bike_white_48dp));
+                }
+                break;
+            case R.id.walk_mode:
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                    floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_walk_white_48dp, getTheme()));
+                }
+                else{
+                    floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_walk_white_48dp));
+                }
+                break;
+            case R.id.electrical_car_mode:
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                    floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_menu_line_car_w, getTheme()));
+                }
+                else{
+                    floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_menu_line_car_w));
+                }
+                break;
+            case R.id.car_sharing_mode:
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                    floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_car_white_48dp, getTheme()));
+                }
+                else{
+                    floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_car_white_48dp));
+                }
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+    private class AddMarkers extends AsyncTask<Boolean, Stop, Boolean>{
+
+        int markerId;
+        ArrayList<Stop> stops;
+        Marker bus;
+        LatLngInterpolator.LinearFixed interpolator;
+        LatLng initialPosition;
 
         @Override
         protected void onPreExecute(){
             googleMap.clear();
+            stops = null;
+
+            interpolator = new LatLngInterpolator.LinearFixed();
         }
 
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Boolean doInBackground(Boolean... params) {
+
+            if((params.length==0 || params[0]==false) && currentMarker != null){
+                markerId = ((Stop)currentMarker.getData()).getIdBdd();
+            }
+
+            String orderby="ASC";
+            if(radioButtons[1] != null && radioButtons[1].isChecked()){
+                orderby="DESC";
+            }
+
             markers.clear();
             JamboDAO dao = new JamboDAO(HomeActivity.this);
             dao.open();
-            HashMap<Integer, Stop> stops = dao.findAssociateArrets(currentRoute);
+            stops = dao.findAssociateArrets(currentRoute, orderby);
             currentRoute.setStop(stops);
-            Iterator<Stop> it = stops.values().iterator();
+            Iterator<Stop> it = stops.iterator();
             markers.clear();
 
-            while (it.hasNext()) {
-                publishProgress(it.next());
+            Stop previous = it.next();
+            initialPosition = it.next().getLatLng();
+            publishProgress(previous);
 
+            for(Stop s : stops){
+                publishProgress(s, previous);
+                previous = s;
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
             dao.close();
-            return null;
+            return (params.length==1)&&params[0];
         }
 
         protected void onProgressUpdate(Stop...result){
             Marker m = googleMap.addMarker(new MarkerOptions()
                     .position(result[0].getLatLng())
-                    .alpha(0.7f)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_maps_schedule))
+                    .alpha(0.8f)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                     .title(result[0].toString()));
             m.setData(result[0]);
             markers.put(result[0].getIdBdd(), m);
+            //MarkerAnimation.animateMarkerToICS(m, result[0].getLatLng(), interpolator);
         }
 
         @Override
-        protected void onPostExecute(Void result){
-            if(markers.size()!=0) {
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(((Marker) markers.values().toArray()[markers.size() / 2]).getPosition(), 14.0f));
+        protected void onPostExecute(final Boolean result){
+
+            bus = googleMap.addMarker(new MarkerOptions()
+                    .position(stops.get(0).getLatLng())
+                    .flat(true)
+                    .rotation(45f)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
+            final Iterator<Stop> it = stops.iterator();
+
+            Animator.AnimatorListener listener = new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    if(it.hasNext()){
+                        MarkerAnimation.animateMarkerToICS(bus, it.next().getLatLng(), interpolator, this);
+                    }
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+
+                }
+            };
+            MarkerAnimation.animateMarkerToICS(bus,it.next().getLatLng(), interpolator, listener);
+
+            if(result && markers.size()!=0) {
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(stops.get(stops.size()/2).getLatLng(), 14.0f));
+            }
+            else{
+                Marker m = markers.get(markerId);
+                if(m != null){
+                    m.showInfoWindow();
+                }
+
             }
         }
 

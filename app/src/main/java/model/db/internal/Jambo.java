@@ -31,7 +31,8 @@ public class Jambo extends SQLiteOpenHelper {
     // ----- ligne
     public static final String LIGNE = "ligne";
     public static final String LIGNE_ID = "id";
-    public static final String LIGNE_NOM = "nom";
+    public static final String LIGNE_NUMERO = "numero";
+    public static final String LIGNE_DESCRIPTION = "description";
     public static final String LIGNE_COULEUR = "couleur";
     public static final String LIGNE_RESEAU = "reseau";
     public static final String LIGNE_ETAT = "etat";
@@ -110,7 +111,8 @@ public class Jambo extends SQLiteOpenHelper {
 
     private static final String LIGNE_CREATE = "CREATE TABLE " + LIGNE + "("
             + LIGNE_ID + " INTEGER PRIMARY KEY, "
-            + LIGNE_NOM + " TEXT NOT NULL DEFAULT 'unknown',"
+            + LIGNE_NUMERO + " TEXT NOT NULL DEFAULT 'unknown',"
+            + LIGNE_DESCRIPTION + " TEXT NOT NULL DEFAULT 'unknown',"
             + LIGNE_COULEUR + " INTEGER DEFAULT 0, "
             + LIGNE_RESEAU + " INTEGER NOT NULL CONSTRAINT fkligne_reseau REFERENCES " + RESEAU + " (id), "
             + LIGNE_FAVORIS + " INTEGER DEFAULT 0,"

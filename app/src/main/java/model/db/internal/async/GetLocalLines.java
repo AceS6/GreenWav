@@ -8,7 +8,7 @@ import java.util.Iterator;
 import model.Line;
 import model.Network;
 import model.db.internal.JamboDAO;
-import view.custom.adapter.BusComponentAdapter;
+import view.custom.adapter.LineAdapter;
 
 /**
  * Created by asauray on 2/20/15.
@@ -17,9 +17,9 @@ public class GetLocalLines extends AsyncTask<Void, Line, Void> {
 
     private Context context;
     private Network network;
-    private BusComponentAdapter bcAdapter;
+    private LineAdapter bcAdapter;
 
-    public GetLocalLines(Context context, Network network, BusComponentAdapter bcAdapter){
+    public GetLocalLines(Context context, Network network, LineAdapter bcAdapter){
         this.network = network;
         this.context = context;
         this.bcAdapter = bcAdapter;
@@ -29,7 +29,7 @@ public class GetLocalLines extends AsyncTask<Void, Line, Void> {
     protected Void doInBackground(Void... params) {
         JamboDAO dao = new JamboDAO(context);
         dao.open();
-        Iterator<Line> it = dao.findLignes(network.getIdBdd()).values().iterator();
+        Iterator<Line> it = dao.findLignes(network.getIdBdd()).iterator();
         while(it.hasNext()){
             publishProgress(it.next());
         }

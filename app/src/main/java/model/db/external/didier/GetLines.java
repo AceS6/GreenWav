@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import model.Line;
@@ -92,8 +93,8 @@ public class GetLines extends AsyncTask<Void, Line, Void>{
 
     }
 
-    private HashMap<String, Route> getRoutes(Line l){
-        HashMap<String, Route> ret = new HashMap<String, Route>();
+    private ArrayList<Route> getRoutes(Line l){
+        ArrayList<Route> ret = new ArrayList<Route>();
         StringBuilder jsonResult = new StringBuilder();
         final String BASE_URL = "http://sauray.me/greenwav/gorilla_route.php?";
 
@@ -120,7 +121,7 @@ public class GetLines extends AsyncTask<Void, Line, Void>{
                 String nom = jsonChildNode.optString("nom");
                 int ligne = jsonChildNode.optInt("ligne");
                 Route r  = new Route(id, ligne, nom);
-                ret.put(nom, r);
+                ret.add(r);
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();

@@ -1,67 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout
+
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/lyt_main"
     android:background="?android:attr/selectableItemBackground"
-    android:focusable="true"
-    android:clickable="true"
-    android:layout_marginTop="5dp"
-    android:layout_marginBottom="5dp"
-    android:layout_marginLeft="5dp"
-    android:layout_marginRight="5dp">
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:id="@+id/lyt_main">
 
         <TextView
-            android:id="@+id/numero"
+            android:id="@+id/number"
+            android:background="@drawable/oval"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="16dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
-            android:layout_marginLeft="10dp"
-            android:width="70dp"
-            android:height="70dp"
             android:gravity="center"
-            android:textSize="36sp"/>
+            android:textSize="24sp"/>
 
-    <ImageView
-        android:id="@+id/status"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/direction"
+        android:layout_gravity="center_vertical"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:alpha="0.3"
-        android:src="@drawable/ic_background_bus_line"
-        android:layout_centerVertical="true"
-        android:layout_marginRight="30dp"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"/>
+        android:layout_marginLeft="56dp"/>
 
-
-            <ImageButton
-                android:id="@+id/favorite"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentTop="true"
-                android:src="@drawable/ic_action_not_important"
-                android:focusable="true"
-                android:clickable="true"
-                android:visibility="gone"
-                android:layout_marginRight="10dp"/>
-
-            <ImageButton
-                android:id="@+id/downloaded"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_schedule_downloaded"
-                android:alpha="0.5"
-                android:focusable="true"
-                android:clickable="true"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentBottom="true"
-                android:visibility="gone"
-                android:layout_marginRight="10dp"/>
-
-
-</RelativeLayout>
+</LinearLayout>

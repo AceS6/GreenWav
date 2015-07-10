@@ -17,6 +17,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -62,12 +63,12 @@ public class GetLineSchedules extends AsyncTask<Void, String, Void> implements D
 
             JamboDAO dao = new JamboDAO(c);
             dao.open();
-            Collection<Route> routes = dao.findRoutes(line.getIdBdd()).values();
+            ArrayList<Route> routes = dao.findRoutes(line.getIdBdd());
             Iterator<Route> it = routes.iterator();
 
             while (it.hasNext()){
                 Route r = it.next();
-                ArrayList<Stop> stops = new ArrayList<>(dao.findAssociateArrets(r).values());
+                ArrayList<Stop> stops = new ArrayList<Stop>(dao.findAssociateArrets(r, "ASC"));
                 int size = stops.size();
                 pd.setMax(stops.size()*routes.size());
                 for (int i=0; i < size; i++) {

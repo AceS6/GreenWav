@@ -27,11 +27,13 @@ public class GetNextSchedule extends AsyncTask<Void, Void, Long> {
         this.idAppartient = idAppartient;
 
         this.card = card;
+        /*
         this.tv = (TextView) card.findViewById(R.id.nextSchedule);
         if(calendarGiven != 1 && calendarGiven != 7){
             calendarGiven = 10;
         }
         this.calendar = calendarGiven;
+        */
     }
 
 

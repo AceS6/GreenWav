@@ -159,7 +159,7 @@ public class GetNetworkVersion extends AsyncTask<Void, String, Integer[]> implem
         }
         else{
             JamboDAO dao = new JamboDAO(context);
-            new DownloadNetwork(context, network, dao.findLignes(network.getIdBdd()), (versionVelo!=0), (versionBus!=0)).execute();
+            //new DownloadNetwork(context, network, dao.findLignes(network.getIdBdd()), (versionVelo!=0), (versionBus!=0)).execute();
             dao.close();
         }
 

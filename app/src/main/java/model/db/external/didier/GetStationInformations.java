@@ -91,7 +91,7 @@ public class GetStationInformations extends AsyncTask<Void, Station, Integer[]>{
     }
 
     protected void onPostExecute(Integer[] result){
-        v.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
+        //v.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
         if(result[0] == -1 || result[1] == -1){
             v.findViewById(R.id.offline).setVisibility(View.VISIBLE);
             v.findViewById(R.id.online).setVisibility(View.INVISIBLE);

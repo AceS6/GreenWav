@@ -60,7 +60,7 @@ public class AddFloatingActionButton extends FloatingActionButton {
     }
 
     @Override
-    Drawable getIconDrawable() {
+    public Drawable getIconDrawable() {
         final float iconSize = getDimension(R.dimen.fab_icon_size);
         final float iconHalfSize = iconSize / 2f;
 

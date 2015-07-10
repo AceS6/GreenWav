@@ -1,7 +1,6 @@
 package view.custom.adapter;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +15,8 @@ import java.util.Collections;
 import java.util.List;
 
 import model.Stop;
+import model.db.internal.BusActivityCallBack;
+import view.custom.callback.StopCallBack;
 
 /**
  * Custom adapter for Line
@@ -28,13 +29,15 @@ public class StopAdapter extends RecyclerView.Adapter<StopAdapter.ViewHolder> {
 
     private List<Stop> mDataset;
     private Activity activity;
+    private BusActivityCallBack callback;
 
     private static final String TAG="LINE_ADATER";
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public StopAdapter(Activity activity) {
+    public StopAdapter(Activity activity, BusActivityCallBack callback) {
         this.activity = activity;
         mDataset = new ArrayList<Stop>();
+        this.callback = callback;
     }
 
     // Create new views (invoked by the layout manager)
@@ -71,7 +74,7 @@ public class StopAdapter extends RecyclerView.Adapter<StopAdapter.ViewHolder> {
         return mDataset.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         // each data item is just a string in this case
         TextView name;
         Stop stopItem;
@@ -86,10 +89,7 @@ public class StopAdapter extends RecyclerView.Adapter<StopAdapter.ViewHolder> {
 
         @Override
         public void onClick(View v) {
-            Intent returnIntent = new Intent();
-            returnIntent.putExtra("BUS_STOP", stopItem);
-            activity.setResult(activity.RESULT_OK, returnIntent);
-            activity.finish();
+            callback.stopSelected(stopItem);
         }
 
         public void setItem(Stop item) {

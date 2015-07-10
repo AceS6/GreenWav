@@ -6,7 +6,7 @@
     android:versionName="2.2.1-SNAPSHOT" >
 
     <uses-sdk
-        android:minSdkVersion="8"
+        android:minSdkVersion="15"
         tools:overrideLibrary="com.google.android.gms, com.google.android.gms.maps" />
 
     <application />

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="232dp"
+    android:elevation="@dimen/toolbar_elevation"
+    android:background="@color/primary"
+    android:minHeight="?attr/actionBarSize"
+    app:popupTheme="@style/ThemeOverlay.AppCompat.Dark"
+    app:theme="@style/ThemeOverlay.AppCompat.Dark">
+
+
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:orientation="vertical">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/line"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/oval"
+                android:layout_gravity="center_vertical"
+                android:text="22"
+                android:textSize="40dp"
+                android:textColor="@color/accent"
+                android:gravity="center"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_gravity="center_vertical"
+                android:text="Lanester Grande Lande"
+                android:textSize="20dp"
+                android:textColor="@android:color/white" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16sp"
+            android:orientation="horizontal">
+
+
+        </LinearLayout>
+
+
+        <!-- Toolbar space -->
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="56dp" />
+
+
+
+
+
+        <!-- Second divider space -->
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="16dp" />
+
+
+    </LinearLayout>
+
+</android.support.v7.widget.Toolbar>
