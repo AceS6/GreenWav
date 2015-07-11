@@ -100,7 +100,7 @@
             android:icon="@drawable/greenwav_ico"></activity>
 
         <activity
-            android:name="view.activity.ScheduleActivity"
+            android:name="view.fragment.ScheduleFragment"
             android:icon="@drawable/greenwav_ico"
             android:screenOrientation="portrait"></activity>
 

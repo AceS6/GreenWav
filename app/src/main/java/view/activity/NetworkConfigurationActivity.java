@@ -28,17 +28,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import model.Line;
 import model.Network;
 import model.db.external.didier.DownloadNetwork;
-import view.custom.adapter.GreenPagerAdapter;
 import view.fragment.BikeFragment;
-import view.fragment.BorneFragment;
-import view.fragment.FinishConfiguration;
 import view.fragment.LineFragment;
 
 /**

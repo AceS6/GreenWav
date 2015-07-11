@@ -4,6 +4,7 @@
     <style name="Theme.Greenwav" parent="@style/Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowActionBarOverlay">true</item>
 
         <item name="colorPrimary">@color/primary</item>
         <!-- colorAccent is used as the default value for colorControlActivated which is used to tint widgets -->

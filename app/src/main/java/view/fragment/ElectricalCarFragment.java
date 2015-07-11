@@ -19,7 +19,7 @@ import model.Stop;
  * @author Antoine Sauray
  * @version 1.0
  */
-public class BikeFragment extends Fragment{
+public class ElectricalCarFragment extends Fragment{
 
     // ----------------------------------- UI
     /**
@@ -34,7 +34,7 @@ public class BikeFragment extends Fragment{
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        root = inflater.inflate(R.layout.fragment_bike, container, false);
+        root = inflater.inflate(R.layout.fragment_electrical_car, container, false);
         Bundle extras = getActivity().getIntent().getExtras();
         initInterface();
         return root;

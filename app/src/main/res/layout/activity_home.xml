@@ -19,13 +19,26 @@
         android:fitsSystemWindows="true"
         tools:context="view.activity.HomeActivity">
 
+
+
         <android.support.design.widget.CoordinatorLayout
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <com.sothree.slidinguppanel.SlidingUpPanelLayout
+                xmlns:sothree="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/sliding_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
 
+                android:gravity="bottom"
+                sothree:umanoInitialState="hidden"
+                sothree:umanoPanelHeight="68dp"
+                sothree:umanoShadowHeight="4dp"
+                sothree:umanoParalaxOffset="200dp"
+                sothree:umanoOverlay="true">
 
             <RelativeLayout
                 android:id="@+id/lyt_main"
@@ -44,6 +57,7 @@
                 android:elevation="@dimen/toolbar_elevation"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
+                android:background="@android:color/transparent"
                 android:transitionName="search"
                 android:layout_margin="16dp">
                     <android.support.v7.widget.Toolbar
@@ -93,6 +107,25 @@
             />
 
             </RelativeLayout>
+
+                <FrameLayout
+                    android:layout_marginTop="?actionBarSize"
+                    android:id="@+id/bottomSheet"
+                    android:elevation="@dimen/card_elevation"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/white">
+
+                    <fragment
+                        android:name="view.fragment.BlankFragment"
+                        android:id="@+id/slidingFragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+
+                </FrameLayout>
+
+
+            </com.sothree.slidinguppanel.SlidingUpPanelLayout>
         </android.support.design.widget.CoordinatorLayout>
 
 
@@ -105,7 +138,17 @@
             app:headerLayout="@layout/drawer_header"/>
 
 
-
     </android.support.v4.widget.DrawerLayout>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbarHidden"
+        android:layout_height="?attr/actionBarSize"
+        android:elevation="@dimen/toolbar_elevation"
+        android:background="@android:color/transparent"
+        android:layout_width="match_parent"
+        android:visibility="invisible"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>

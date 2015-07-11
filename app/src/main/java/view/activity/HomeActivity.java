@@ -2,49 +2,34 @@ package view.activity;
 
 
 import android.animation.Animator;
-import android.animation.ObjectAnimator;
-import android.annotation.TargetApi;
-import android.app.SearchManager;
-import android.content.ClipData;
-import android.content.ClipDescription;
-import android.content.Context;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.speech.RecognizerIntent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.util.Pair;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SearchViewCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.InputType;
-import android.util.DisplayMetrics;
-import android.view.DragEvent;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
-import android.view.ViewGroup;
-import android.widget.AutoCompleteTextView;
-import android.widget.EditText;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
-import android.widget.SearchView;
-import android.widget.TextView;
 
 import com.androidmapsextensions.GoogleMap;
 import com.androidmapsextensions.MapFragment;
@@ -56,11 +41,11 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.greenwav.greenwav.R;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 
 import model.Borne;
 import model.Event;
@@ -70,12 +55,16 @@ import model.Route;
 import model.Station;
 import model.Stop;
 import model.User;
-import model.db.external.didier.GetEventImage;
-import model.db.external.didier.GetStationInformations;
 import model.db.internal.JamboDAO;
 import model.db.internal.async.DisplayBikeStations;
 import view.custom.google.LatLngInterpolator;
 import view.custom.google.MarkerAnimation;
+import view.fragment.BikeFragment;
+import view.fragment.BlankFragment;
+import view.fragment.CarSharingFragment;
+import view.fragment.ElectricalCarFragment;
+import view.fragment.ScheduleFragment;
+import view.fragment.WalkFragment;
 
 
 /**
@@ -120,7 +109,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
      * The card widget. It changes its visual aspecting depending on the selected marker's type.
      * It can show any content a view can show.
      */
-    private View bottomSheet;
+    private SlidingUpPanelLayout slidingPanel;
 
     private NavigationView navigationView;
     /**
@@ -202,7 +191,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         sharedPref.edit().putInt("UI", pref_service).apply();
 
         if (currentNetwork != null) {
-            initInterface();
+            initInterface(R.id.toolbar);
             markers = new HashMap<Integer, Marker>();
             suggestions = new ArrayList<PlaceInformation>();
         } else {
@@ -213,13 +202,75 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         navigationView = (NavigationView) findViewById(R.id.navigation_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getExtendedMapAsync(this);
 
+        lyt_main = (RelativeLayout) this.findViewById(R.id.lyt_main);
+
+        slidingPanel = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        slidingPanel.setAnchorPoint(0.6f);
+
+        slidingPanel.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            @Override
+            public void onPanelSlide(View view, float v) {
+
+            }
+
+            @Override
+            public void onPanelCollapsed(View view) {
+                initInterface(R.id.toolbar);
+            }
+
+            @Override
+            public void onPanelExpanded(View view) {
+
+            }
+
+            @Override
+            public void onPanelAnchored(View view) {
+                if(toolbar.getId() != R.id.toolbarHidden) {
+                    initInterface(R.id.toolbarHidden);
+                }
+            }
+
+            @Override
+            public void onPanelHidden(View view) {
+
+            }
+        });
 
         floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
         floatingActionButton.setBaselineAlignBottom(true);
 
         currentMode = R.id.bus_mode;
 
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction transaction = fm.beginTransaction();
+
+        Fragment fragment = null;
+        switch(currentMode){
+            case R.id.bus_mode:
+                fragment = new ScheduleFragment();
+                break;
+            case R.id.bike_mode:
+                fragment = new BikeFragment();
+                break;
+            case R.id.walk_mode:
+                fragment = new WalkFragment();
+                break;
+            case R.id.electrical_car_mode:
+                fragment = new ElectricalCarFragment();
+                break;
+            case R.id.car_sharing_mode:
+                fragment = new CarSharingFragment();
+                break;
+            default:
+                fragment = new BlankFragment();
+            break;
+
+        }
+        transaction.replace(R.id.slidingFragment, fragment);
+        transaction.commit();
     }
 
     @Override
@@ -239,9 +290,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     addMarkers = new AddMarkers();
                     addMarkers.execute(true);
                     // Remove UI if a new line has been selected
-                    if(bottomSheet != null){
-                        bottomSheet.setVisibility(View.INVISIBLE);
-                    }
 
                 }
                 break;
@@ -314,13 +362,44 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             return false;
         }
 
+        slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+
+            // get the center for the clipping circle
+            int cx = floatingActionButton.getMeasuredWidth() / 2;
+            int cy = floatingActionButton.getMeasuredHeight() / 2;
+
+            // get the initial radius for the clipping circle
+            int initialRadius = floatingActionButton.getWidth() / 2;
+
+            // create the animation (the final radius is zero)
+            Animator anim =
+                    ViewAnimationUtils.createCircularReveal(floatingActionButton, cx, cy, initialRadius, 0);
+
+            // make the view invisible when the animation is done
+            anim.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    floatingActionButton.setVisibility(View.INVISIBLE);
+                }
+            });
+
+            // start the animation
+            anim.start();
+        }
+        else{
+
+        }
+
         currentMarker = marker;
         String snippet = marker.getSnippet();
-        lyt_main.removeView(bottomSheet);
-        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
 
         Class c = marker.getData().getClass();
+
+        /*
 
         if(c == Stop.class){
             currentStop = (Stop) marker.getData();
@@ -352,6 +431,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             bottomSheet = inflater.inflate(R.layout.card_event, null);
         }
         cardReveal(c);
+        */
         return false;
     }
 
@@ -360,7 +440,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         Class c = marker.getData().getClass();
         Intent intent = null;
         if(c == Stop.class){
-            intent = new Intent(HomeActivity.this, ScheduleActivity.class);
+            intent = new Intent(HomeActivity.this, ScheduleFragment.class);
             intent.putExtra("BUS_STOP", currentStop);
             intent.putExtra("BUS_ROUTE", currentRoute);
             intent.putExtra("BUS_LINE", currentLine);
@@ -382,11 +462,38 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapClick(LatLng latLng) {
+        /*
         if (currentMarker != null) {
             currentMarker = null;
             cardUnreveal();
         }
+        */
+        slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+
         bottomSheetVisible = false;
+        if(floatingActionButton.getVisibility() != View.VISIBLE){
+
+            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                // get the center for the clipping circle
+                int cx = floatingActionButton.getMeasuredWidth() / 2;
+                int cy = floatingActionButton.getMeasuredHeight() / 2;
+
+                // get the final radius for the clipping circle
+                int finalRadius = Math.max(floatingActionButton.getWidth(), floatingActionButton.getHeight()) / 2;
+
+                // create the animator for this view (the start radius is zero)
+                Animator anim =
+                        ViewAnimationUtils.createCircularReveal(floatingActionButton, cx, cy, 0, finalRadius);
+
+                // make the view visible and start the animation
+                floatingActionButton.setVisibility(View.VISIBLE);
+                anim.start();
+            }
+            else{
+
+            }
+        }
+
     }
 
     @Override
@@ -416,233 +523,86 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         }
 
-        /*
-
-        lyt_main.removeView(ui);
-        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        switch (uiId) {
-            case 0:
-                ui = inflater.inflate(R.layout.ui_bus, null);
-                break;
-            case 1:
-                ui = inflater.inflate(R.layout.ui_bike, null);
-                break;
-            case 2:
-                ui = inflater.inflate(R.layout.ui_car, null);
-                break;
-        }
-        */
-        //uiReveal();
     }
 
     /**
      * Initializes the visual aspect of the activity
+     * * @param id the id of the toolbar
      */
-    private void initInterface() {
-
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //toolbar.setTitle(this.getResources().getString(R.string.activity_home));
-        //toolbar.setLogo(R.drawable.ic_directions_bus_black_48dp);
-        //toolbar.getLogo().setAlpha(54);
-        setSupportActionBar(toolbar);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
+    private void initInterface(final int id) {
 
 
-        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(this,drawerLayout,toolbar,R.string.openDrawer, R.string.closeDrawer){
-
-            @Override
-            public void onDrawerClosed(View drawerView) {
-                // Code here will be triggered once the drawer closes as we dont want anything to happen so we leave this blank
-                super.onDrawerClosed(drawerView);
-            }
-
-            @Override
-            public void onDrawerOpened(View drawerView) {
-                // Code here will be triggered once the drawer open as we dont want anything to happen so we leave this blank
-
-                super.onDrawerOpened(drawerView);
-            }
-        };
-
-        //Setting the actionbarToggle to drawer layout
-        drawerLayout.setDrawerListener(actionBarDrawerToggle);
-
-        //calling sync state is necessay or else your hamburger icon wont show up
-        actionBarDrawerToggle.syncState();
-
-        mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getExtendedMapAsync(this);
-
-        lyt_main = (RelativeLayout) this.findViewById(R.id.lyt_main);
-    }
-    /**
-     * Called when a click on UI element is detected (The low right corner interface)
-     */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public void buttonClick(View v) {
-        Intent intent = null;
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
-            v.animate().translationZ(6f);
-        }
-/*
-        switch (v.getId()) {
-
-            case R.id.fab:
-                intent = null;
-
-                if(bottomSheetVisible){
-                    intent = new Intent(HomeActivity.this, ScheduleActivity.class);
-                    if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
-                        intent.putExtra("NETWORK", currentNetwork);
-                        intent.putExtra("BUS_LINE", currentLine);
-                        intent.putExtra("BUS_ROUTE", currentRoute);
-                        intent.putExtra("BUS_STOP", currentStop);
-                        //ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this,
-                        //        new Pair<View, String>(ui.findViewById(R.id.floatingActionButton), "fab"));
-                        this.startActivity(intent);
-                    }
-                    else{
-                        this.startActivity(intent);
-                    }
+        if(id == R.id.toolbarHidden){
+            toolbar = (Toolbar) findViewById(id);
+            toolbar.setTitle(currentMarker.getTitle());
+            Animation fadeIn = new AlphaAnimation(0, 1);
+            fadeIn.setInterpolator(new DecelerateInterpolator()); //add this
+            fadeIn.setDuration(300);
+            fadeIn.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                    toolbar.setVisibility(View.VISIBLE);
                 }
-                else{
-                    intent = new Intent(HomeActivity.this, BusActivity.class);
-                    intent.putExtra("NETWORK", currentNetwork);
-                    if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
-                        //ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this,
-                        //        new Pair<View, String>(ui.findViewById(R.id.floatingActionButton), "fab"));
-                        this.startActivityForResult(intent, LINE_SELECTION//, options.toBundle()
-                        );
-                    }
-                    else{
-                        this.startActivityForResult(intent, LINE_SELECTION);
-                    }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+
                 }
-                break;
-            case R.id.bikeButton:
-                    intent = new Intent(HomeActivity.this, BikeActivity.class);
-                    intent.putExtra("NETWORK", currentNetwork);
-                    intent.putExtra("LOCATION", googleMap.getMyLocation());
-                    this.startActivityForResult(intent, BIKE_SELECTION);
-                break;
-            case R.id.borneButton:
-                intent = new Intent(HomeActivity.this, ElectricalActivity.class);
-                intent.putExtra("NETWORK", currentNetwork);
-                intent.putExtra("LOCATION", googleMap.getMyLocation());
-                this.startActivityForResult(intent, BORNE_SELECTION);
-                break;
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+
+            });
+            toolbar.setAnimation(fadeIn);
+            fadeIn.start();
+            setSupportActionBar(toolbar);
+            ActionBar actionBar = getSupportActionBar();
+            actionBar.setDisplayHomeAsUpEnabled(true);
         }
-        */
+        else{
+            if(toolbar != null && toolbar.getId() == R.id.toolbarHidden){toolbar.setVisibility(View.INVISIBLE);}
+
+            toolbar = (Toolbar) findViewById(id);
+            setSupportActionBar(toolbar);
+            ActionBar actionBar = getSupportActionBar();
+            actionBar.setDisplayHomeAsUpEnabled(true);
+
+            DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+            ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(this,drawerLayout,toolbar,R.string.openDrawer, R.string.closeDrawer){
+
+                @Override
+                public void onDrawerClosed(View drawerView) {
+                    // Code here will be triggered once the drawer closes as we dont want anything to happen so we leave this blank
+                    super.onDrawerClosed(drawerView);
+                }
+
+                @Override
+                public void onDrawerOpened(View drawerView) {
+                    // Code here will be triggered once the drawer open as we dont want anything to happen so we leave this blank
+
+                    super.onDrawerOpened(drawerView);
+                }
+            };
+
+            //Setting the actionbarToggle to drawer layout
+            drawerLayout.setDrawerListener(actionBarDrawerToggle);
+
+            //calling sync state is necessay or else your hamburger icon wont show up
+            actionBarDrawerToggle.syncState();
+
+        }
+
     }
 
-    /**
-     * Called when a click on a contextual card is detected
-     */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public void cardClick(View v) {
-        Intent intent = null;
+    public void radioClick(View v) {
 
-        switch (v.getId()) {
-            /*
-            case R.id.card_schedule:
-                intent = new Intent(HomeActivity.this, ScheduleActivity.class);
-                intent.putExtra("BUS_STOP", currentStop);
-                intent.putExtra("BUS_ROUTE", currentRoute);
-                intent.putExtra("BUS_LINE", currentLine);
-                intent.putExtra("NETWORK", currentNetwork);
-                startActivity(intent);
-                break;
-            case R.id.card_event:
-                Intent intentEvent = new Intent(HomeActivity.this, EventActivity.class);
-                intentEvent.putExtra("EVENT", currentEvent);
-                startActivity(intentEvent);
-                break;
-                */
-        }
-    }
-
-    public void radioClick(View v){
-
-        if(addMarkers != null && addMarkers.getStatus() == AsyncTask.Status.RUNNING){
+        if (addMarkers != null && addMarkers.getStatus() == AsyncTask.Status.RUNNING) {
             addMarkers.cancel(true);
         }
         addMarkers = new AddMarkers();
         addMarkers.execute();
-    }
-
-    private void cardReveal(final Class c){
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 300);
-        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-
-        bottomSheet.setLayoutParams(params);
-        ObjectAnimator animY = ObjectAnimator.ofFloat(bottomSheet, "translationY", 300f, 0f);
-        animY.setDuration(500);//1.5sec
-        animY.setRepeatCount(0);
-
-        floatingActionButton.setBaseline(R.id.bottom_sheet);
-
-        bottomSheet.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    switch (currentMode){
-                        case R.id.bus_mode:
-                            Intent intent = new Intent(HomeActivity.this, ScheduleActivity.class);
-                            intent.putExtra("BUS_STOP", currentStop);
-                            intent.putExtra("BUS_ROUTE", currentRoute);
-                            intent.putExtra("BUS_LINE", currentLine);
-                            intent.putExtra("NETWORK", currentNetwork);
-                            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
-                                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this);
-                                HomeActivity.this.startActivity(intent, options.toBundle()
-                                );
-                            }
-                            else{
-                                HomeActivity.this.startActivity(intent);
-                            }
-                            break;
-                        case R.id.bike_mode:
-                            break;
-                    }
-                    return true;
-                } else if(event.getAction() == MotionEvent.ACTION_MOVE){
-
-                    return true;
-                }
-                return false;
-            }
-        });
-        lyt_main.addView(bottomSheet);
-        bottomSheetVisible = true;
-        floatingActionButton.bringToFront();
-        animY.start();
-
-        if(c == Stop.class){
-            //new GetNextSchedule(HomeActivity.this, currentStop.getIdAppartient(), Schedule.getDayOfWeek(), bottomSheet).execute();
-        }
-        else if(c == Station.class){
-            new GetStationInformations(HomeActivity.this, currentStation, currentNetwork, bottomSheet).execute();
-        }
-        else if(c == Borne.class){
-            ((TextView)bottomSheet.findViewById(R.id.nom)).setText(currentBorne.getNom());
-            ((TextView)bottomSheet.findViewById(R.id.typeCharge)).setText(currentBorne.getTypeChargeur());
-        }
-        else if(c == Event.class){
-            new GetEventImage(this, currentEvent, bottomSheet).execute();
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void cardUnreveal(){
-        if(bottomSheet != null && bottomSheetVisible) {
-            ObjectAnimator animYDown = ObjectAnimator.ofFloat(bottomSheet, "translationY", 0f, 300f);
-            animYDown.setDuration(500);//1.5sec
-            animYDown.setRepeatCount(0);
-            animYDown.start();
-            bottomSheetVisible = false;
-        }
     }
 
     public void toolbarClick(View v) {
@@ -734,6 +694,31 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        if(slidingPanel.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED){
+            slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
+        }
+        else if(slidingPanel.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED){
+            slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        }
+        else if(slidingPanel.getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED){
+            slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+        }
+        else{
+            finish();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     public void drawerHeaderClick(View v){
         Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
         intent.putExtra("USER", currentUser);
@@ -751,11 +736,22 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         ((DrawerLayout)findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
         currentMode = menuItem.getItemId();
         menuItem.setChecked(true);
-        cardUnreveal();
+
+        slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+        if(floatingActionButton.getVisibility() != View.VISIBLE){
+            floatingActionButton.setVisibility(View.VISIBLE);
+        }
+
         googleMap.clear();
         markers.clear();
+
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction transaction = fm.beginTransaction();
+
+        Fragment fragment = null;
         switch (currentMode){
             case R.id.bus_mode:
+                fragment = new ScheduleFragment();
                 if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
                     floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_bus_white_48dp, getTheme()));
                 }
@@ -764,6 +760,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
             case R.id.bike_mode:
+                fragment = new BikeFragment();
                 new DisplayBikeStations(this, googleMap, markers, currentNetwork.getIdBdd()).execute();
                 if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
                     floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_bike_white_48dp, getTheme()));
@@ -773,6 +770,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
             case R.id.walk_mode:
+                fragment = new WalkFragment();
                 if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
                     floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_walk_white_48dp, getTheme()));
                 }
@@ -781,6 +779,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
             case R.id.electrical_car_mode:
+                fragment = new ElectricalCarFragment();
                 if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
                     floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_menu_line_car_w, getTheme()));
                 }
@@ -789,6 +788,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
             case R.id.car_sharing_mode:
+                fragment = new CarSharingFragment();
                 if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
                     floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_car_white_48dp, getTheme()));
                 }
@@ -797,8 +797,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
             default:
+                fragment = new BlankFragment();
                 return false;
         }
+        transaction.replace(R.id.slidingFragment, fragment);
+        transaction.commit();
         return true;
     }
 
