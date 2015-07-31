@@ -32,7 +32,7 @@
                 android:id="@+id/sliding_layout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-
+                sothree:umanoDragView="@+id/slidingFragment"
                 android:gravity="bottom"
                 sothree:umanoInitialState="hidden"
                 sothree:umanoPanelHeight="68dp"
@@ -107,23 +107,12 @@
             />
 
             </RelativeLayout>
-
                 <FrameLayout
                     android:layout_marginTop="?actionBarSize"
-                    android:id="@+id/bottomSheet"
-                    android:elevation="@dimen/card_elevation"
+                    android:id="@+id/slidingFragment"
+                    android:background="@android:color/white"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/white">
-
-                    <fragment
-                        android:name="view.fragment.BlankFragment"
-                        android:id="@+id/slidingFragment"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"/>
-
-                </FrameLayout>
-
+                    android:layout_height="match_parent" />
 
             </com.sothree.slidinguppanel.SlidingUpPanelLayout>
         </android.support.design.widget.CoordinatorLayout>

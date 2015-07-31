@@ -1,18 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+
 <LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/Lyt_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clickable="false"
     android:fitsSystemWindows="true"
-    android:layout_below="@+id/lyt_main"
     android:orientation="vertical">
 
-    <TextView
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:id="@+id/quickViewSchedule">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/previousSchedule"
+            android:clickable="false"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_margin="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:id="@+id/previousScheduleText"
+                android:layout_centerInParent="true"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:id="@+id/previousScheduleImage"
+                android:src="@drawable/ic_warning_black_48dp"
+                android:layout_centerInParent="true"
+                android:visibility="invisible"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:id="@+id/nextSchedule"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentTop="true"
+            android:layout_margin="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:id="@+id/nextScheduleText"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="10 minutes"
+                android:visibility="invisible"
+/>
+
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:id="@+id/nextScheduleImage"
+                android:src="@drawable/ic_warning_black_48dp"
+                android:layout_centerInParent="true"
+                android:visibility="invisible"/>
+
+        </RelativeLayout>
+
+
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:id="@+id/afterSchedule"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_margin="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:id="@+id/afterScheduleText"
+                android:layout_centerInParent="true"
+                android:text="-5 minutes"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:id="@+id/afterScheduleImage"
+                android:src="@drawable/ic_warning_black_48dp"
+                android:layout_centerInParent="true"
+                android:visibility="invisible"/>
+
+        </RelativeLayout>
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:id="@+id/progress"
+            style="?android:attr/progressBarStyle"
+            android:layout_centerInParent="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:id="@+id/noConnexion"
+            android:layout_centerInParent="true"
+            android:text="Pas de connexion"
+            android:visibility="invisible" />
+
+
+    </RelativeLayout>
+
+    <TableLayout
+        android:id="@+id/fullSchedules"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Schedule here"/>
+        android:clickable="false"
+        android:stretchColumns="*"
+        android:shrinkColumns="*">
+
+
+        </TableLayout>
 
 </LinearLayout>
-

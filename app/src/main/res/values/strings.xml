@@ -37,8 +37,9 @@
     <string name="activity_preferences">Preferences</string>
     <string name="activity_cost">Coûts</string>
     <string name="activity_configuration">Configuration</string>
-    <string name="activity_car">Bornes électriques</string>
-    <string name="activity_bike">Vélos</string>
+    <string name="activity_car">Voiture électrique</string>
+    <string name="activity_bike">Vélo</string>
+    <string name="activity_walk">Marche à pied</string>
 
     <!--
         Preferences vocabulary

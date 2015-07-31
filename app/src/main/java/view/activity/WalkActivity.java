@@ -75,7 +75,7 @@ public class WalkActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void initInterface() {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle(R.string.activity_bike);
+        toolbar.setTitle(R.string.activity_walk);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);

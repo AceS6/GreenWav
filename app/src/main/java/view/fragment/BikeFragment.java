@@ -9,7 +9,10 @@ import android.view.ViewGroup;
 import com.greenwav.greenwav.R;
 
 import model.Line;
+import model.Network;
+import model.Station;
 import model.Stop;
+import model.db.external.didier.GetStationInformations;
 
 /**
  * Displays bus schedules
@@ -31,18 +34,23 @@ public class BikeFragment extends Fragment{
     // ----------------------------------- Model
 
     private View root;
+    private Network currentNetwork;
+
+    public BikeFragment(){
+        setRetainInstance(true);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         root = inflater.inflate(R.layout.fragment_bike, container, false);
         Bundle extras = getActivity().getIntent().getExtras();
+        currentNetwork = extras.getParcelable("NETWORK");
         initInterface();
         return root;
     }
 
-    public void updateTimes() {
-        //adapter.removeAll();
-        //new GetSchedules(this.getActivity(), currrentNetwork, currentStop.getIdAppartient(), calendar.getSelectedItemPosition()+1, adapter, swipeRefreshLayout).execute();
+    public void updateInformations(Station s) {
+        new GetStationInformations(getActivity(), s, currentNetwork, root).execute();
     }
 
     private void initInterface() {

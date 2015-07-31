@@ -6,7 +6,7 @@ import android.text.format.Time;
 
 import java.util.Calendar;
 
-public class Schedule extends Time implements Comparable<Time>, Parcelable {
+public class Schedule implements Comparable<Schedule>, Parcelable {
 
     public static final Parcelable.Creator CREATOR =
             new Parcelable.Creator() {
@@ -21,11 +21,11 @@ public class Schedule extends Time implements Comparable<Time>, Parcelable {
     private int id;
     private int calendar;
     private int idAppartient;
+    public int hour, minute;
 
 
     // new constructor for gorilla
     public Schedule(int id, String schedule, int calendar, int idAppartient) {
-        this.format("hh:mm");
         this.hour = Integer.parseInt(schedule.substring(0, 2));
         this.minute = Integer.parseInt(schedule.substring(3, 5));
         this.idAppartient = idAppartient;
@@ -94,9 +94,18 @@ public class Schedule extends Time implements Comparable<Time>, Parcelable {
     }
 
     @Override
-    public int compareTo(Time another) {
+    public int compareTo(Schedule another) {
         // TODO Auto-generated method stub
         return toString().compareTo(another.toString());
+    }
+
+    public boolean isSuperior(int hour, int minute){
+        if(this.hour == hour){
+            return this.minute > minute;
+        }
+        else{
+            return this.hour > hour;
+        }
     }
 
     @Override

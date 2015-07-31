@@ -19,6 +19,10 @@ import view.activity.NetworkConfigurationActivity;
  */
 public class BlankFragment extends Fragment{
 
+    public BlankFragment(){
+        setRetainInstance(true);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_blank, container, false);

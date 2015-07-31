@@ -30,6 +30,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
+import android.widget.TableLayout;
 
 import com.androidmapsextensions.GoogleMap;
 import com.androidmapsextensions.MapFragment;
@@ -52,9 +53,12 @@ import model.Event;
 import model.Network;
 import model.PlaceInformation;
 import model.Route;
+import model.Schedule;
 import model.Station;
 import model.Stop;
 import model.User;
+import model.db.external.didier.GetSchedules;
+import model.db.external.didier.GetStationInformations;
 import model.db.internal.JamboDAO;
 import model.db.internal.async.DisplayBikeStations;
 import view.custom.google.LatLngInterpolator;
@@ -169,6 +173,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean bottomSheetVisible;
 
     private RadioButton[] radioButtons;
+    private Fragment fragment;
 
     private AddMarkers addMarkers;
 
@@ -188,6 +193,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         int pref_service = Integer.parseInt(sharedPref.getString("pref_service", "0"));
+        currentMode = sharedPref.getInt("last_mode", R.id.bus_mode);
         sharedPref.edit().putInt("UI", pref_service).apply();
 
         if (currentNetwork != null) {
@@ -201,6 +207,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         navigationView = (NavigationView) findViewById(R.id.navigation_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        navigationView.getMenu().findItem(currentMode).setChecked(true);
 
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getExtendedMapAsync(this);
@@ -242,35 +250,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
         floatingActionButton.setBaselineAlignBottom(true);
 
-        currentMode = R.id.bus_mode;
-
-        FragmentManager fm = getSupportFragmentManager();
-        FragmentTransaction transaction = fm.beginTransaction();
-
-        Fragment fragment = null;
-        switch(currentMode){
-            case R.id.bus_mode:
-                fragment = new ScheduleFragment();
-                break;
-            case R.id.bike_mode:
-                fragment = new BikeFragment();
-                break;
-            case R.id.walk_mode:
-                fragment = new WalkFragment();
-                break;
-            case R.id.electrical_car_mode:
-                fragment = new ElectricalCarFragment();
-                break;
-            case R.id.car_sharing_mode:
-                fragment = new CarSharingFragment();
-                break;
-            default:
-                fragment = new BlankFragment();
-            break;
-
-        }
-        transaction.replace(R.id.slidingFragment, fragment);
-        transaction.commit();
+        updateMode();
     }
 
     @Override
@@ -353,6 +333,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         int uiId = sharedPref.getInt("UI", -1);
 
         //new GetEvents(this, currentNetwork.getIdBdd(), googleMap, markers).execute();
+        updateMap();
     }
 
     @Override
@@ -398,40 +379,13 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         Class c = marker.getData().getClass();
-
-        /*
-
-        if(c == Stop.class){
-            currentStop = (Stop) marker.getData();
-            bottomSheet = inflater.inflate(R.layout.card_schedule, null);
-
-            radioButtons[0] = (RadioButton) bottomSheet.findViewById(R.id.sens1);
-            radioButtons[1] = (RadioButton) bottomSheet.findViewById(R.id.sens2);
-
-            JamboDAO dao = new JamboDAO(this);
-            dao.open();
-
-            int i=0;
-            List<Route> routes = currentLine.getRoutes();
-            for(Route r : routes){
-                radioButtons[i].setText(r.toString());
-                i++;
-            }
+        if( c == Stop.class){
+            Stop s = marker.getData();
+            new GetSchedules(this, currentNetwork, s.getIdAppartient(), Schedule.getDayOfWeek(), (TableLayout)fragment.getView().findViewById(R.id.fullSchedules), fragment.getView()).execute();
         }
         else if (c == Station.class){
-            currentStation = (Station) marker.getData();
-            bottomSheet = inflater.inflate(R.layout.card_bike, null);
+            new GetStationInformations(this, (Station)marker.getData(), currentNetwork, fragment.getView()).execute();
         }
-        else if (c == Borne.class){
-            currentBorne = (Borne) marker.getData();
-            bottomSheet = inflater.inflate(R.layout.card_car, null);
-        }
-        else if (c == Event.class){
-            currentEvent = (Event) marker.getData();
-            bottomSheet = inflater.inflate(R.layout.card_event, null);
-        }
-        cardReveal(c);
-        */
         return false;
     }
 
@@ -607,23 +561,23 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void toolbarClick(View v) {
 
-                Intent i = new Intent(this, SearchActivity.class);
+        Intent i = new Intent(this, SearchActivity.class);
 
-                if(v.getId() == R.id.speechRecognition){
-                    i.putExtra("SPEECH", true);
-                }
-                else{
-                    i.putExtra("SPEECH", false);
-                }
+        if(v.getId() == R.id.speechRecognition){
+            i.putExtra("SPEECH", true);
+        }
+        else{
+            i.putExtra("SPEECH", false);
+        }
 
-                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
-                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this,
-                            findViewById(R.id.appBar), "search");
-                    HomeActivity.this.startActivity(i, options.toBundle());
-                }
-                else{
-                    startActivity(i);
-                }
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this,
+                    findViewById(R.id.appBar), "search");
+            HomeActivity.this.startActivity(i, options.toBundle());
+        }
+        else{
+            startActivity(i);
+        }
 
 
     }
@@ -734,21 +688,29 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onNavigationItemSelected(MenuItem menuItem) {
         ((DrawerLayout)findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
-        currentMode = menuItem.getItemId();
-        menuItem.setChecked(true);
+        if(menuItem.getItemId() != currentMode){
+            currentMode = menuItem.getItemId();
+            menuItem.setChecked(true);
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+            sharedPref.edit().putInt("last_mode", currentMode).apply();
 
-        slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
-        if(floatingActionButton.getVisibility() != View.VISIBLE){
-            floatingActionButton.setVisibility(View.VISIBLE);
+            slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+            if(floatingActionButton.getVisibility() != View.VISIBLE){
+                floatingActionButton.setVisibility(View.VISIBLE);
+            }
+
+            googleMap.clear();
+            markers.clear();
+            updateMap();
+            return updateMode();
         }
+        return true;
+    }
 
-        googleMap.clear();
-        markers.clear();
-
+    private boolean updateMode(){
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction transaction = fm.beginTransaction();
 
-        Fragment fragment = null;
         switch (currentMode){
             case R.id.bus_mode:
                 fragment = new ScheduleFragment();
@@ -761,7 +723,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case R.id.bike_mode:
                 fragment = new BikeFragment();
-                new DisplayBikeStations(this, googleMap, markers, currentNetwork.getIdBdd()).execute();
                 if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
                     floatingActionButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_directions_bike_white_48dp, getTheme()));
                 }
@@ -803,6 +764,17 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         transaction.replace(R.id.slidingFragment, fragment);
         transaction.commit();
         return true;
+    }
+
+    private void updateMap(){
+        switch(currentMode){
+            case R.id.bus_mode:
+                break;
+            case R.id.bike_mode:
+                new DisplayBikeStations(this, googleMap, markers, currentNetwork.getIdBdd()).execute();
+                break;
+        }
+
     }
 
     private class AddMarkers extends AsyncTask<Boolean, Stop, Boolean>{

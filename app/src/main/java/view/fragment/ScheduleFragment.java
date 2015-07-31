@@ -16,7 +16,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
+import android.widget.TableLayout;
+import android.widget.TextView;
 
 import com.greenwav.greenwav.R;
 
@@ -41,6 +44,11 @@ public class ScheduleFragment extends Fragment{
      * Unique identifier for this activity
      */
     private static final String TAG = "SCHEDULE_ACTIVITY";
+    private Network currentNetwork;
+    private Stop currentStop;
+
+    private TableLayout tableLayout;
+    private RelativeLayout quickViewLayout;
 
 
     // ----------------------------------- Model
@@ -51,16 +59,20 @@ public class ScheduleFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         root = inflater.inflate(R.layout.fragment_schedule, container, false);
         Bundle extras = getActivity().getIntent().getExtras();
+        currentNetwork = extras.getParcelable("NETWORK");
+        tableLayout = (TableLayout) root.findViewById(R.id.fullSchedules);
         initInterface();
         return root;
     }
 
-    public void updateTimes() {
+    public void updateTimes(int stopIdAppartient, int calendar) {
         //adapter.removeAll();
-        //new GetSchedules(this.getActivity(), currrentNetwork, currentStop.getIdAppartient(), calendar.getSelectedItemPosition()+1, adapter, swipeRefreshLayout).execute();
+        new GetSchedules(this.getActivity(), currentNetwork, stopIdAppartient, calendar, tableLayout, quickViewLayout).execute();
+        //new GetSchedules(this.getActivity(), currentNetwork, currentStop.getIdAppartient(), calendar.getSelectedItemPosition()+1, adapter, swipeRefreshLayout).execute();
     }
 
     private void initInterface() {
+        quickViewLayout = (RelativeLayout) root.findViewById(R.id.quickViewSchedule);
 /*
         calendar = new Spinner(getSupportActionBar().getThemedContext());
         ArrayAdapter<CharSequence> set1Adapter = ArrayAdapter.createFromResource(getSupportActionBar().getThemedContext(),
