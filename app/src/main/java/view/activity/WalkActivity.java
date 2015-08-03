@@ -14,13 +14,7 @@ import android.widget.AdapterView;
 
 import com.greenwav.greenwav.R;
 
-import java.util.Iterator;
-
-import model.Station;
 import model.Walk;
-import model.db.external.didier.GetStations;
-import model.db.internal.JamboDAO;
-import view.custom.adapter.BikeAdapter;
 import view.custom.adapter.WalkAdapter;
 
 /**

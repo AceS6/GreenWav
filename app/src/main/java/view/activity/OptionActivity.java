@@ -21,7 +21,7 @@ import java.util.Iterator;
 import model.Network;
 import model.db.internal.JamboDAO;
 
-public class PreferencesActivity extends PreferenceActivity {
+public class OptionActivity extends PreferenceActivity {
 
     // ----------------------------------- Constants
     /**

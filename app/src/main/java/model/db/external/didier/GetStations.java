@@ -2,23 +2,18 @@ package model.db.external.didier;
 
 import android.app.Activity;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.androidmapsextensions.GoogleMap;
 import com.androidmapsextensions.Marker;
-import com.androidmapsextensions.MarkerOptions;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.greenwav.greenwav.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
-import model.Station;
+import model.BikeStation;
 import model.db.internal.JamboDAO;
 import view.custom.adapter.BikeAdapter;
 
-public class GetStations extends AsyncTask<Void, Station, Void>{
+public class GetStations extends AsyncTask<Void, BikeStation, Void>{
 
     private GoogleMap gMap;
     private int network;
@@ -43,14 +38,14 @@ public class GetStations extends AsyncTask<Void, Station, Void>{
     protected Void doInBackground(Void... params) {
         JamboDAO dao = new JamboDAO(a);
         dao.open();
-        ArrayList<Station> stations = dao.findStation(network);
-        for(Station s : stations){
+        ArrayList<BikeStation> stations = dao.findStation(network);
+        for(BikeStation s : stations){
             publishProgress(s);
         }
         return null;
     }
 
-    protected void onProgressUpdate(Station... result){
+    protected void onProgressUpdate(BikeStation... result){
         stationAdapter.add(result[0]);
     }
 }

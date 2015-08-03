@@ -30,8 +30,8 @@ public class Network implements Comparable<Network>, Parcelable {
     protected String nom;
     protected HashMap<Integer, Line> lignes;
     protected HashMap<Integer, Stop> arrets;
-    protected HashMap<Integer, Station> stations;
-    protected HashMap<Integer, Borne> bornes;
+    protected HashMap<Integer, BikeStation> stations;
+    protected HashMap<Integer, ElectricalTerminal> bornes;
     private int idBdd;
     private int bus;
     private int velo;
@@ -112,19 +112,19 @@ public class Network implements Comparable<Network>, Parcelable {
         this.arrets = arrets;
     }
 
-    public HashMap<Integer, Station> getStations() {
+    public HashMap<Integer, BikeStation> getStations() {
         return stations;
     }
 
-    public void setStations(HashMap<Integer, Station> stations) {
+    public void setStations(HashMap<Integer, BikeStation> stations) {
         this.stations = stations;
     }
 
-    public HashMap<Integer, Borne> getBornes() {
+    public HashMap<Integer, ElectricalTerminal> getBornes() {
         return bornes;
     }
 
-    public void setBornes(HashMap<Integer, Borne> bornes) {
+    public void setBornes(HashMap<Integer, ElectricalTerminal> bornes) {
         this.bornes = bornes;
     }
 

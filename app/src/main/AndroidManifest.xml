@@ -59,7 +59,7 @@
         <activity
             android:name="view.activity.HomeActivity"
             android:icon="@drawable/greenwav_ico"
-
+            android:configChanges="orientation|keyboardHidden"
             android:label="@string/app_name">
             <meta-data android:name="android.app.default_searchable"
                 android:value="view.activity.SearchActivity" />
@@ -130,7 +130,7 @@
             android:icon="@drawable/greenwav_ico"></activity>
 
         <activity
-            android:name="view.activity.PreferencesActivity"
+            android:name="view.activity.OptionActivity"
             android:icon="@drawable/greenwav_ico"></activity>
 
 

@@ -28,11 +28,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import model.Borne;
+import model.BikeStation;
+import model.ElectricalTerminal;
 import model.Line;
 import model.Network;
 import model.Route;
-import model.Station;
 import model.Stop;
 import model.db.internal.DAOCallback;
 import model.db.internal.JamboDAO;
@@ -334,11 +334,11 @@ public class DownloadNetwork extends AsyncTask<Void, String, HashMap<String, Sto
 
     }
 
-    private HashMap<Integer, Station> getStations(){
+    private HashMap<Integer, BikeStation> getStations(){
         // TODO Auto-generated method stub
         StringBuilder jsonResult = new StringBuilder();
         final String BASE_URL = "http://sauray.me/greenwav/gorilla_station.php?";
-        HashMap<Integer, Station> ret = new  HashMap<Integer, Station>();
+        HashMap<Integer, BikeStation> ret = new  HashMap<Integer, BikeStation>();
 
         HttpURLConnection conn = null;
         try {
@@ -369,7 +369,7 @@ public class DownloadNetwork extends AsyncTask<Void, String, HashMap<String, Sto
                 String adresse = jsonChildNode.optString("adresse");
                 int externalId = jsonChildNode.optInt("id_ext");
                 Log.d(nom + ", etat = " + ret + ", id = " + externalId, " idext");
-                Station s = new Station(id, nom, adresse, new LatLng(latitude, longitude), network.getIdBdd(), externalId);
+                BikeStation s = new BikeStation(id, nom, adresse, new LatLng(latitude, longitude), network.getIdBdd(), externalId);
                 ret.put(s.getIdBdd(), s);
                 publishProgress("Téléchargement de la station "+s.getNom());
             }
@@ -387,11 +387,11 @@ public class DownloadNetwork extends AsyncTask<Void, String, HashMap<String, Sto
         return ret;
     }
 
-    private HashMap<Integer, Borne> getBornes() throws IOException {
+    private HashMap<Integer, ElectricalTerminal> getBornes() throws IOException {
 
         StringBuilder jsonResult = new StringBuilder();
         final String BASE_URL = "http://sauray.me/greenwav/gorilla_borne.php?";
-        HashMap<Integer, Borne> ret = new HashMap<Integer, Borne>();
+        HashMap<Integer, ElectricalTerminal> ret = new HashMap<Integer, ElectricalTerminal>();
         jsonResult = new StringBuilder();
         StringBuilder sb = new StringBuilder(BASE_URL);
         sb.append("reseau=" + network.getIdBdd());
@@ -425,7 +425,7 @@ public class DownloadNetwork extends AsyncTask<Void, String, HashMap<String, Sto
                 String typeConnecteur = jsonChildNode.optString("type_connecteur");
                 String observations = jsonChildNode.optString("observations");
                 int reseau = jsonChildNode.optInt("reseau");
-                Borne b = new Borne(id, nom, adresse, new LatLng(lat, lng), nomPorteur, typeChargeur, nbrePdc, typeConnecteur, observations, reseau);
+                ElectricalTerminal b = new ElectricalTerminal(id, nom, adresse, new LatLng(lat, lng), nomPorteur, typeChargeur, nbrePdc, typeConnecteur, observations, reseau);
                 ret.put(id, b);
                 this.publishProgress(res.getString(R.string.downloading_borne) + this.network.toString());
             }

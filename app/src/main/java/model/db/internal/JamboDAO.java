@@ -8,17 +8,16 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import model.Borne;
+import model.BikeStation;
+import model.ElectricalTerminal;
 import model.Line;
 import model.Network;
 import model.Route;
 import model.Schedule;
-import model.Station;
 import model.Stop;
 
 /**
@@ -146,8 +145,8 @@ public class JamboDAO {
         long ret = 0;
         HashMap<Integer, Line> lignes = null;
         HashMap<Integer, Stop> arrets = null;
-        HashMap<Integer, Station> stations = null;
-        HashMap<Integer, Borne> bornes = null;
+        HashMap<Integer, BikeStation> stations = null;
+        HashMap<Integer, ElectricalTerminal> bornes = null;
 
         // On cherche si le reseau a deja ete integre, si oui on le supprime avant de le re-rentre dans la base
         Cursor c = db.query(RESEAU, new String[]{RESEAU_ID}, RESEAU_ID + " LIKE '" + network.getIdBdd() + "'", null, null, null, null);
@@ -199,7 +198,7 @@ public class JamboDAO {
             // On recupere la liste des stations pour les rentrer dans la bdd
             stations = network.getStations();
             if(stations != null) {
-                Iterator<Station> itStation = stations.values().iterator();
+                Iterator<BikeStation> itStation = stations.values().iterator();
                 int iStation = 0;
                 int sizeStation = stations.values().size();
                 while (itStation.hasNext()) {
@@ -212,7 +211,7 @@ public class JamboDAO {
             // On recupere la liste des bornes pour les rentrer dans la bdd
             bornes = network.getBornes();
             if(bornes != null) {
-                Iterator<Borne> itBorne = bornes.values().iterator();
+                Iterator<ElectricalTerminal> itBorne = bornes.values().iterator();
                 int iBorne = 0;
                 int sizeBorne = bornes.values().size();
                 while (itBorne.hasNext()) {
@@ -699,7 +698,7 @@ public class JamboDAO {
 
     // ----- station
 
-    public long insertStation(Station station) {
+    public long insertStation(BikeStation station) {
         long ret = 0;
         if (station != null) {
             ContentValues values = new ContentValues();
@@ -717,9 +716,9 @@ public class JamboDAO {
         return ret;
     }
 
-    public ArrayList<Station> findStation(int reseau) {
-        ArrayList<Station> ret = new ArrayList<Station>();
-        Station tmp = null;
+    public ArrayList<BikeStation> findStation(int reseau) {
+        ArrayList<BikeStation> ret = new ArrayList<BikeStation>();
+        BikeStation tmp = null;
         int tmpId, tmpIdExt;
         String tmpNom, tmpAdresse;
         LatLng tmpLatLng;
@@ -733,7 +732,7 @@ public class JamboDAO {
                 tmpAdresse = c.getString(2);
                 tmpLatLng = new LatLng(c.getFloat(3), c.getFloat(4));
                 tmpIdExt = c.getInt(6);
-                tmp = new Station(tmpId, tmpNom, tmpAdresse, tmpLatLng, reseau, tmpIdExt);
+                tmp = new BikeStation(tmpId, tmpNom, tmpAdresse, tmpLatLng, reseau, tmpIdExt);
                 ret.add(tmp);
                 Log.d(tmp.getNom() + ", etat = " + ret + ", id = " + tmp.getIdBdd(), "=====> JAMBO : find station");
             }
@@ -750,7 +749,7 @@ public class JamboDAO {
     // ---------- CAR
 
     // ----- borne
-    public long insertBorne(Borne borne) {
+    public long insertBorne(ElectricalTerminal borne) {
         long ret = 0;
         if (borne != null) {
             ContentValues values = new ContentValues();
@@ -772,9 +771,9 @@ public class JamboDAO {
         return ret;
     }
 
-    public HashMap<Integer, Borne> findBorne(int reseau) {
-        HashMap<Integer, Borne> ret = new HashMap<Integer, Borne>();
-        Borne tmp = null;
+    public HashMap<Integer, ElectricalTerminal> findBorne(int reseau) {
+        HashMap<Integer, ElectricalTerminal> ret = new HashMap<Integer, ElectricalTerminal>();
+        ElectricalTerminal tmp = null;
         int tmpId, tmpIdExt, tmpNbrePdc;
         String tmpNom, tmpAdresse, tmpNomPorteur, tmpTypeChargeur, tmpTypeConnecteur, tmpObservations;
         LatLng tmpLatLng;
@@ -792,7 +791,7 @@ public class JamboDAO {
                 tmpNbrePdc = c.getInt(7);
                 tmpTypeConnecteur = c.getString(8);
                 tmpObservations = c.getString(9);
-                tmp = new Borne(tmpId, tmpNom, tmpAdresse, tmpLatLng, tmpNomPorteur, tmpTypeChargeur, tmpNbrePdc, tmpTypeConnecteur, tmpObservations, reseau);
+                tmp = new ElectricalTerminal(tmpId, tmpNom, tmpAdresse, tmpLatLng, tmpNomPorteur, tmpTypeChargeur, tmpNbrePdc, tmpTypeConnecteur, tmpObservations, reseau);
                 ret.put(tmpId, tmp);
                 Log.d(tmp.getNom() + ", etat = " + ret + ", id = " + tmp.getIdBdd(), "=====> JAMBO : find borne");
             }

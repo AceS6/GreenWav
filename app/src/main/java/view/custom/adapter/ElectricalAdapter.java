@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import model.Borne;
+import model.ElectricalTerminal;
 
 /**
  * Custom adapter for Line
@@ -26,7 +26,7 @@ import model.Borne;
  */
 public class ElectricalAdapter extends RecyclerView.Adapter<ElectricalAdapter.ViewHolder> {
 
-    private List<Borne> mDataset;
+    private List<ElectricalTerminal> mDataset;
     private Activity activity;
 
     private static final String TAG="LINE_ADATER";
@@ -34,7 +34,7 @@ public class ElectricalAdapter extends RecyclerView.Adapter<ElectricalAdapter.Vi
     // Provide a suitable constructor (depends on the kind of dataset)
     public ElectricalAdapter(Activity activity) {
         this.activity = activity;
-        mDataset = new ArrayList<Borne>();
+        mDataset = new ArrayList<ElectricalTerminal>();
     }
 
     // Create new views (invoked by the layout manager)
@@ -53,11 +53,11 @@ public class ElectricalAdapter extends RecyclerView.Adapter<ElectricalAdapter.Vi
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         holder.setItem(mDataset.get(position));
-        Borne b = mDataset.get(position);
+        ElectricalTerminal b = mDataset.get(position);
         holder.name.setText(b.toString());
     }
 
-    public void add(Borne item) {
+    public void add(ElectricalTerminal item) {
         int position = mDataset.size();
         mDataset.add(position, item);
         notifyItemInserted(position);
@@ -74,7 +74,7 @@ public class ElectricalAdapter extends RecyclerView.Adapter<ElectricalAdapter.Vi
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         // each data item is just a string in this case
         TextView name;
-        Borne borneItem;
+        ElectricalTerminal borneItem;
         Activity activity;
 
         public ViewHolder(Activity activity, LinearLayout lyt_main) {
@@ -92,7 +92,7 @@ public class ElectricalAdapter extends RecyclerView.Adapter<ElectricalAdapter.Vi
             activity.finish();
         }
 
-        public void setItem(Borne item) {
+        public void setItem(ElectricalTerminal item) {
             borneItem = item;
         }
     }

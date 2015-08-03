@@ -11,14 +11,15 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_height="@dimen/panel_height"
+        android:background="@color/primary"
         android:id="@+id/quickViewBike">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/bikesAvailable"
+                android:textColor="@android:color/white"
                 android:layout_alignParentLeft="true"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
@@ -28,6 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/slotsAvailable"
+            android:textColor="@android:color/white"
             android:layout_centerInParent="true"
             android:layout_alignParentRight="true"
             android:layout_marginLeft="16dp"
@@ -46,6 +48,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="false"
+            android:textColor="@android:color/white"
             android:id="@+id/noConnexion"
             android:layout_centerInParent="true"
             android:text="Pas de connexion"

@@ -6,6 +6,8 @@ import android.os.Parcelable;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import model.utility.MapEntity;
+
 /**
  * Copyright 2014 Antoine Sauray
  * Arret is a bus stop class
@@ -13,7 +15,7 @@ import com.google.android.gms.maps.model.LatLng;
  * @author Antoine Sauray & Alexis Robin
  * @version 0.2
  */
-public class Stop implements Comparable<Stop>, Parcelable {
+public class Stop extends MapEntity implements Comparable<Stop>, Parcelable {
 
     // ----------- ATTRIBUTES
 
@@ -80,6 +82,11 @@ public class Stop implements Comparable<Stop>, Parcelable {
 
     public LatLng getLatLng() {
         return latLng;
+    }
+
+    @Override
+    public String getTitle() {
+        return nom;
     }
 
     //public ArrayList<String> getLignesDesservant(){return lignesDesservant;}
@@ -202,5 +209,10 @@ public class Stop implements Comparable<Stop>, Parcelable {
         favorite = in.readByte() != 0;
         latLng = in.readParcelable(LatLng.class.getClassLoader());
         location = in.readParcelable(Location.class.getClassLoader());
+    }
+
+    @Override
+    public int getId() {
+        return idBdd;
     }
 }

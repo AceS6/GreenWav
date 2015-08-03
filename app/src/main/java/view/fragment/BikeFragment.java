@@ -10,7 +10,7 @@ import com.greenwav.greenwav.R;
 
 import model.Line;
 import model.Network;
-import model.Station;
+import model.BikeStation;
 import model.Stop;
 import model.db.external.didier.GetStationInformations;
 
@@ -49,7 +49,7 @@ public class BikeFragment extends Fragment{
         return root;
     }
 
-    public void updateInformations(Station s) {
+    public void updateInformations(BikeStation s) {
         new GetStationInformations(getActivity(), s, currentNetwork, root).execute();
     }
 

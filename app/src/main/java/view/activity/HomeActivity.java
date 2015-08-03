@@ -5,9 +5,11 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -21,16 +23,15 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewAnimationUtils;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TableLayout;
+import android.widget.Toast;
 
 import com.androidmapsextensions.GoogleMap;
 import com.androidmapsextensions.MapFragment;
@@ -48,19 +49,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import model.Borne;
+import model.ElectricalTerminal;
 import model.Event;
 import model.Network;
 import model.PlaceInformation;
 import model.Route;
 import model.Schedule;
-import model.Station;
+import model.BikeStation;
 import model.Stop;
 import model.User;
 import model.db.external.didier.GetSchedules;
 import model.db.external.didier.GetStationInformations;
 import model.db.internal.JamboDAO;
 import model.db.internal.async.DisplayBikeStations;
+import model.utility.MapEntity;
 import view.custom.google.LatLngInterpolator;
 import view.custom.google.MarkerAnimation;
 import view.fragment.BikeFragment;
@@ -97,6 +99,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
      * Toolbar widget
      */
     private Toolbar toolbar;
+    private Toolbar hiddenToolbar;
     /**
      * The map
      */
@@ -128,13 +131,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
      * Provides markers on a marker. The key is the marker title attribute
      */
     private HashMap<Integer, Marker> markers;
-    /**
-     * Contains the suggestions provided by the Google Search API
-     *
-     * @see model.db.external.google.AutoCompletion
-     * @see model.db.external.google.GetDetails
-     */
-    private ArrayList<PlaceInformation> suggestions;
+
     /**
      * The current network used
      */
@@ -147,18 +144,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
      * The current route used
      */
     private model.Route currentRoute;
-    /**
-     * The current stop used
-     */
-    private Stop currentStop;
-    /**
-     * The current bike station selected
-     */
-    private Station currentStation;
-    /**
-     * The current electrical borne
-     */
-    private Borne currentBorne;
     /**
      * The current marker selected. A marker is selected after the method onMarkerClick has been called
      * It becomes null when the user clicks somwhere on the map.
@@ -180,31 +165,29 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private int currentMode;
     private User currentUser;
 
+    // Persistent information
+    private int currentMarkerId = -1;
+    private Class currentMarkerClass;
+    private MapEntity data;
     // ----------------------------------- Constants
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
         Bundle extras = this.getIntent().getExtras();
         currentNetwork = extras.getParcelable("NETWORK");
         currentUser = new User("Antoine");
         bottomSheetVisible = false;
         radioButtons = new RadioButton[2];
 
+        hiddenToolbar = (Toolbar) findViewById(R.id.toolbarHidden);
+
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         int pref_service = Integer.parseInt(sharedPref.getString("pref_service", "0"));
         currentMode = sharedPref.getInt("last_mode", R.id.bus_mode);
         sharedPref.edit().putInt("UI", pref_service).apply();
 
-        if (currentNetwork != null) {
-            initInterface(R.id.toolbar);
-            markers = new HashMap<Integer, Marker>();
-            suggestions = new ArrayList<PlaceInformation>();
-        } else {
-            Intent intent = new Intent(HomeActivity.this, SplashScreenActivity.class);
-            startActivity(intent);
-            this.finish();
-        }
         navigationView = (NavigationView) findViewById(R.id.navigation_view);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -221,7 +204,24 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         slidingPanel.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View view, float v) {
-
+                if (toolbar.getId() == R.id.toolbarHidden) {
+                    if (v > 0.6f) {
+                        float res = v - 0.6f;
+                        double pourcentage = (res / 0.4);
+                        toolbar.getBackground().setAlpha((int) (pourcentage * 255));
+                    } else {
+                        float res = v - 0.3f;
+                        float pourcentage = (res / 0.3f);
+                        toolbar.setAlpha(pourcentage);
+                    }
+                } else {
+                    float res = v - 0.3f;
+                    float pourcentage = (res / 0.3f);
+                    hiddenToolbar.setAlpha(pourcentage);
+                    if (res > 0) {
+                        initInterface(R.id.toolbarHidden);
+                    }
+                }
             }
 
             @Override
@@ -231,14 +231,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onPanelExpanded(View view) {
-
+                toolbar.setAlpha(1);
             }
 
             @Override
             public void onPanelAnchored(View view) {
-                if(toolbar.getId() != R.id.toolbarHidden) {
-                    initInterface(R.id.toolbarHidden);
-                }
+
             }
 
             @Override
@@ -246,17 +244,70 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         });
-
         floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
         floatingActionButton.setBaselineAlignBottom(true);
+
+        if(savedInstanceState == null){
+            initInterface(R.id.toolbar);
+        }
+        else{
+            currentMarkerId = savedInstanceState.getInt("MARKER_ID", -1);
+            currentMarkerClass = (Class) savedInstanceState.getSerializable("MARKER_CLASS");
+            data = savedInstanceState.getParcelable("data");
+            initInterface(savedInstanceState.getInt("toolbar"));
+        }
+
+
+        if (currentNetwork != null) {
+            markers = new HashMap<Integer, Marker>();
+            //suggestions = new ArrayList<PlaceInformation>();
+        } else {
+            Intent intent = new Intent(HomeActivity.this, SplashScreenActivity.class);
+            startActivity(intent);
+            this.finish();
+        }
 
         updateMode();
     }
 
     @Override
-    public boolean onSearchRequested() {
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt("toolbar", toolbar.getId());
+        outState.putSerializable("PANEL_STATE", slidingPanel.getPanelState());
+        outState.putInt("MARKER_ID", currentMarkerId);
+        outState.putSerializable("MARKER_CLASS", currentMarkerClass);
+        outState.putParcelable("data", data);
+    }
 
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        // TODO Auto-generated method stub
+        super.onRestoreInstanceState(savedInstanceState);
+        slidingPanel.setPanelState((SlidingUpPanelLayout.PanelState) savedInstanceState.getSerializable("PANEL_STATE"));
+        if(slidingPanel.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED){
+            toolbar.getBackground().setAlpha(255);
+        }
+        currentMarkerId = savedInstanceState.getInt("MARKER_ID", -1);
+        currentMarkerClass = (Class) savedInstanceState.getSerializable("MARKER_CLASS");
+        data = savedInstanceState.getParcelable("data");
+        initInterface(savedInstanceState.getInt("toolbar"));
+        markerAction();
+    }
+
+    @Override
+    public boolean onSearchRequested() {
         return super.onSearchRequested();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -275,9 +326,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case STOP_SELECTION:
                 if (resultCode == RESULT_OK) {
-                    currentStop = data.getParcelableExtra("BUS_STOP");
-                    Marker marker = markers.get(currentStop.getIdBdd());
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentStop.getLatLng(), 14.0f));
+                    this.data = data.getParcelableExtra("BUS_STOP");
+                    Marker marker = markers.get(this.data.getId());
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(this.data.getLatLng(), 14.0f));
                     if(marker != null) {
                         onMarkerClick(marker);
                         marker.showInfoWindow();
@@ -286,9 +337,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case BIKE_SELECTION:
                 if (resultCode == RESULT_OK) {
-                    currentStation = data.getParcelableExtra("STATION");
-                    Marker marker = markers.get(currentStation.getIdBdd());
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentStation.getLatLng(), 14.0f));
+                    this.data = data.getParcelableExtra("STATION");
+                    Marker marker = markers.get(this.data.getId());
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(this.data.getLatLng(), 14.0f));
                     if(marker != null) {
                         onMarkerClick(marker);
                         marker.showInfoWindow();
@@ -297,9 +348,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case ELECTRICAL_SELECTION:
                 if (resultCode == RESULT_OK) {
-                    currentBorne = data.getParcelableExtra("BORNE");
-                    Marker marker = markers.get(currentBorne.getIdBdd());
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentBorne.getLatLng(), 14.0f));
+                    this.data = data.getParcelableExtra("BORNE");
+                    Marker marker = markers.get(this.data.getId());
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(this.data.getLatLng(), 14.0f));
                     if(marker != null) {
                         onMarkerClick(marker);
                         marker.showInfoWindow();
@@ -334,6 +385,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //new GetEvents(this, currentNetwork.getIdBdd(), googleMap, markers).execute();
         updateMap();
+
     }
 
     @Override
@@ -343,6 +395,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             return false;
         }
 
+
+        currentMarkerId = ((MapEntity)marker.getData()).getId();
         slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
 
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
@@ -373,20 +427,28 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         else{
 
         }
-
         currentMarker = marker;
-        String snippet = marker.getSnippet();
+        String snippet = currentMarker.getSnippet();
 
-
-        Class c = marker.getData().getClass();
-        if( c == Stop.class){
-            Stop s = marker.getData();
-            new GetSchedules(this, currentNetwork, s.getIdAppartient(), Schedule.getDayOfWeek(), (TableLayout)fragment.getView().findViewById(R.id.fullSchedules), fragment.getView()).execute();
+        data = currentMarker.getData();
+        if(data.getClass() == Stop.class){
+            data = currentMarker.getData();
+            new GetSchedules(this, currentNetwork, ((Stop)data).getIdAppartient(), Schedule.getDayOfWeek(), (TableLayout)fragment.getView().findViewById(R.id.fullSchedules), fragment.getView()).execute();
         }
-        else if (c == Station.class){
-            new GetStationInformations(this, (Station)marker.getData(), currentNetwork, fragment.getView()).execute();
+        else if (currentMarkerClass == BikeStation.class){
+            this.data = currentMarker.getData();
+            new GetStationInformations(this, (BikeStation) this.data, currentNetwork, fragment.getView()).execute();
         }
         return false;
+    }
+
+    private void markerAction(){
+        if(currentMarkerClass == Stop.class){
+            new GetSchedules(this, currentNetwork, ((Stop)data).getIdAppartient(), Schedule.getDayOfWeek(), (TableLayout)fragment.getView().findViewById(R.id.fullSchedules), fragment.getView()).execute();
+        }
+        else if (currentMarkerClass == BikeStation.class){
+            new GetStationInformations(this, (BikeStation) this.data, currentNetwork, fragment.getView()).execute();
+        }
     }
 
     @Override
@@ -395,7 +457,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         Intent intent = null;
         if(c == Stop.class){
             intent = new Intent(HomeActivity.this, ScheduleFragment.class);
-            intent.putExtra("BUS_STOP", currentStop);
+            intent.putExtra("data", data);
             intent.putExtra("BUS_ROUTE", currentRoute);
             intent.putExtra("BUS_LINE", currentLine);
             intent.putExtra("NETWORK", currentNetwork);
@@ -484,41 +546,20 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
      * * @param id the id of the toolbar
      */
     private void initInterface(final int id) {
-
-
+        toolbar = (Toolbar) findViewById(id);
         if(id == R.id.toolbarHidden){
-            toolbar = (Toolbar) findViewById(id);
-            toolbar.setTitle(currentMarker.getTitle());
-            Animation fadeIn = new AlphaAnimation(0, 1);
-            fadeIn.setInterpolator(new DecelerateInterpolator()); //add this
-            fadeIn.setDuration(300);
-            fadeIn.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {
-                    toolbar.setVisibility(View.VISIBLE);
-                }
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-
-                }
-
-            });
-            toolbar.setAnimation(fadeIn);
-            fadeIn.start();
+            Log.d("toolbar toolbarhidden", "toolbar toolbarhidden");
+            //Toast.makeText(this, "toolbarHidden", Toast.LENGTH_SHORT).show();
+            toolbar.getBackground().setAlpha(0);
             setSupportActionBar(toolbar);
             ActionBar actionBar = getSupportActionBar();
             actionBar.setDisplayHomeAsUpEnabled(true);
+            toolbar.setTitle(data.getTitle());
         }
         else{
-            if(toolbar != null && toolbar.getId() == R.id.toolbarHidden){toolbar.setVisibility(View.INVISIBLE);}
-
-            toolbar = (Toolbar) findViewById(id);
+            //Toast.makeText(this, "toolbar", Toast.LENGTH_SHORT).show();
+            Log.d("toolbar toolbar", "toolbar toolbar");
+            toolbar.setAlpha(1);
             setSupportActionBar(toolbar);
             ActionBar actionBar = getSupportActionBar();
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -545,18 +586,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             //calling sync state is necessay or else your hamburger icon wont show up
             actionBarDrawerToggle.syncState();
-
         }
-
-    }
-
-    public void radioClick(View v) {
-
-        if (addMarkers != null && addMarkers.getStatus() == AsyncTask.Status.RUNNING) {
-            addMarkers.cancel(true);
-        }
-        addMarkers = new AddMarkers();
-        addMarkers.execute();
     }
 
     public void toolbarClick(View v) {
@@ -688,21 +718,44 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onNavigationItemSelected(MenuItem menuItem) {
         ((DrawerLayout)findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
-        if(menuItem.getItemId() != currentMode){
-            currentMode = menuItem.getItemId();
-            menuItem.setChecked(true);
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-            sharedPref.edit().putInt("last_mode", currentMode).apply();
+        int id = menuItem.getItemId();
+        if(id != currentMode){
 
-            slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
-            if(floatingActionButton.getVisibility() != View.VISIBLE){
-                floatingActionButton.setVisibility(View.VISIBLE);
+            if(id == R.id.network || id == R.id.options){
+                Intent intent = null;
+                switch(id){
+                    case R.id.network:
+                        intent = new Intent(HomeActivity.this, NetworkSelectionActivity.class);
+                        break;
+                    case R.id.options:
+                        intent = new Intent(HomeActivity.this, OptionActivity.class);
+                        break;
+                }
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(HomeActivity.this);
+                    startActivity(intent, options.toBundle());
+                }
+                else{
+                    startActivity(intent);
+                }
+            }
+            else{
+                currentMode = id;
+                menuItem.setChecked(true);
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+                sharedPref.edit().putInt("last_mode", currentMode).apply();
+
+                slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+                if(floatingActionButton.getVisibility() != View.VISIBLE){
+                    floatingActionButton.setVisibility(View.VISIBLE);
+                }
+
+                googleMap.clear();
+                markers.clear();
+                updateMap();
+                return updateMode();
             }
 
-            googleMap.clear();
-            markers.clear();
-            updateMap();
-            return updateMode();
         }
         return true;
     }
@@ -766,15 +819,17 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         return true;
     }
 
-    private void updateMap(){
-        switch(currentMode){
+    private void updateMap() {
+        googleMap.clear();
+        switch (currentMode) {
             case R.id.bus_mode:
+                addMarkers = new AddMarkers();
+                addMarkers.execute();
                 break;
             case R.id.bike_mode:
-                new DisplayBikeStations(this, googleMap, markers, currentNetwork.getIdBdd()).execute();
+                new DisplayBikeStations(this, googleMap, markers, currentMarkerId, currentNetwork.getIdBdd()).execute();
                 break;
         }
-
     }
 
     private class AddMarkers extends AsyncTask<Boolean, Stop, Boolean>{
@@ -797,7 +852,13 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected Boolean doInBackground(Boolean... params) {
 
             if((params.length==0 || params[0]==false) && currentMarker != null){
-                markerId = ((Stop)currentMarker.getData()).getIdBdd();
+                if(data != null){
+                    markerId = data.getId();
+                }
+            }
+
+            if(currentRoute == null){
+                return false;
             }
 
             String orderby="ASC";
@@ -844,51 +905,52 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         @Override
         protected void onPostExecute(final Boolean result){
 
-            bus = googleMap.addMarker(new MarkerOptions()
-                    .position(stops.get(0).getLatLng())
-                    .flat(true)
-                    .rotation(45f)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+            if(result){
+                bus = googleMap.addMarker(new MarkerOptions()
+                        .position(stops.get(0).getLatLng())
+                        .flat(true)
+                        .rotation(45f)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
 
-            final Iterator<Stop> it = stops.iterator();
+                final Iterator<Stop> it = stops.iterator();
 
-            Animator.AnimatorListener listener = new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {
+                Animator.AnimatorListener listener = new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
 
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    if(it.hasNext()){
-                        MarkerAnimation.animateMarkerToICS(bus, it.next().getLatLng(), interpolator, this);
                     }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        if(it.hasNext()){
+                            MarkerAnimation.animateMarkerToICS(bus, it.next().getLatLng(), interpolator, this);
+                        }
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+
+                    }
+                };
+                MarkerAnimation.animateMarkerToICS(bus,it.next().getLatLng(), interpolator, listener);
+
+                if(result && markers.size()!=0) {
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(stops.get(stops.size()/2).getLatLng(), 14.0f));
                 }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-
-                }
-
-                @Override
-                public void onAnimationRepeat(Animator animation) {
+                else{
+                    Marker m = markers.get(markerId);
+                    if(m != null){
+                        m.showInfoWindow();
+                    }
 
                 }
-            };
-            MarkerAnimation.animateMarkerToICS(bus,it.next().getLatLng(), interpolator, listener);
-
-            if(result && markers.size()!=0) {
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(stops.get(stops.size()/2).getLatLng(), 14.0f));
-            }
-            else{
-                Marker m = markers.get(markerId);
-                if(m != null){
-                    m.showInfoWindow();
-                }
-
             }
         }
-
     }
 
     public Network getCurrentNetwork(){

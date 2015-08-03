@@ -9,8 +9,8 @@
     android:background="@color/primary"
     android:minHeight="?attr/actionBarSize"
     android:subtitle="@string/app_name_subtitle"
-    app:popupTheme="@style/ThemeOverlay.AppCompat.Dark"
-    app:theme="@style/ThemeOverlay.AppCompat.Dark"
+    android:popupTheme="@style/ThemeOverlay.AppCompat.Dark"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark"
     android:title="@string/app_name">
 
 </android.support.v7.widget.Toolbar>

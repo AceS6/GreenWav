@@ -1,26 +1,16 @@
 package view.activity;
 
-import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 
 import com.greenwav.greenwav.R;
 
-import java.util.Iterator;
-
-import model.Station;
+import model.BikeStation;
 import model.User;
-import model.db.external.didier.GetStations;
-import model.db.internal.JamboDAO;
-import view.custom.adapter.BikeAdapter;
 
 /**
  * Provides a list of Stop available for selection to the user
@@ -50,7 +40,7 @@ public class ProfileActivity extends AppCompatActivity {
      */
     private Toolbar toolbar;
 
-    private Station returningStation;
+    private BikeStation returningStation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

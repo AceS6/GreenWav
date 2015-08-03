@@ -20,4 +20,7 @@
 
     <dimen name="line_diameter">40dp</dimen>
 
+    <!-- Panel sizes -->
+    <dimen name="panel_height">68dp</dimen>
+
 </resources>

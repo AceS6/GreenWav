@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import model.Station;
+import model.BikeStation;
 
 /**
  * Custom adapter for Line
@@ -26,7 +26,7 @@ import model.Station;
  */
 public class BikeAdapter extends RecyclerView.Adapter<BikeAdapter.ViewHolder> {
 
-    private List<Station> mDataset;
+    private List<BikeStation> mDataset;
     private Activity activity;
 
     private static final String TAG="STATION_ADATER";
@@ -34,7 +34,7 @@ public class BikeAdapter extends RecyclerView.Adapter<BikeAdapter.ViewHolder> {
     // Provide a suitable constructor (depends on the kind of dataset)
     public BikeAdapter(Activity activity) {
         this.activity = activity;
-        mDataset = new ArrayList<Station>();
+        mDataset = new ArrayList<BikeStation>();
     }
 
     // Create new views (invoked by the layout manager)
@@ -53,12 +53,12 @@ public class BikeAdapter extends RecyclerView.Adapter<BikeAdapter.ViewHolder> {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         holder.setItem(mDataset.get(position));
-        Station s = mDataset.get(position);
+        BikeStation s = mDataset.get(position);
         holder.name.setText(s.toString());
         holder.letter.setText(s.toString().substring(0,1));
     }
 
-    public void add(Station item) {
+    public void add(BikeStation item) {
         int position = mDataset.size();
         mDataset.add(position, item);
         notifyItemInserted(position);
@@ -75,7 +75,7 @@ public class BikeAdapter extends RecyclerView.Adapter<BikeAdapter.ViewHolder> {
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         // each data item is just a string in this case
         TextView name, letter;
-        Station stationItem;
+        BikeStation stationItem;
         Activity activity;
 
         public ViewHolder(Activity activity, LinearLayout lyt_main) {
@@ -94,7 +94,7 @@ public class BikeAdapter extends RecyclerView.Adapter<BikeAdapter.ViewHolder> {
             activity.finish();
         }
 
-        public void setItem(Station item) {
+        public void setItem(BikeStation item) {
             stationItem = item;
         }
     }

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,7 +17,7 @@ import com.greenwav.greenwav.R;
 
 import java.util.Iterator;
 
-import model.Borne;
+import model.ElectricalTerminal;
 import model.db.external.didier.GetBornes;
 import model.db.internal.JamboDAO;
 import view.custom.adapter.ElectricalAdapter;
@@ -61,7 +60,7 @@ public class ElectricalActivity extends AppCompatActivity implements AdapterView
 
     private RecyclerView.LayoutManager layoutManager;
 
-    private Borne returningBorne;
+    private ElectricalTerminal returningBorne;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +108,7 @@ public class ElectricalActivity extends AppCompatActivity implements AdapterView
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        returningBorne = (Borne) parent.getItemAtPosition(position);
+        returningBorne = (ElectricalTerminal) parent.getItemAtPosition(position);
         Intent returnIntent = new Intent();
         returnIntent.putExtra("BORNE", returningBorne);
         setResult(RESULT_OK, returnIntent);
@@ -124,12 +123,12 @@ public class ElectricalActivity extends AppCompatActivity implements AdapterView
     public void run() {
         JamboDAO dao = new JamboDAO(ElectricalActivity.this);
         dao.open();
-        Iterator<Borne> it = dao.findBorne(currentNetwork.getIdBdd()).values().iterator();
+        Iterator<ElectricalTerminal> it = dao.findBorne(currentNetwork.getIdBdd()).values().iterator();
         dao.close();
         float distance = 10000000;
-        Borne nearest = null;
+        ElectricalTerminal nearest = null;
         while (it.hasNext()) {
-            Borne b = it.next();
+            ElectricalTerminal b = it.next();
             if (currentLocation.distanceTo(b.getLocation()) < distance) {
                 distance = currentLocation.distanceTo(b.getLocation());
                 nearest = b;

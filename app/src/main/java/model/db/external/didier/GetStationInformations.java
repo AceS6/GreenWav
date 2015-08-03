@@ -19,17 +19,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import model.Network;
-import model.Station;
+import model.BikeStation;
 import model.utility.NetworkUtil;
 
-public class GetStationInformations extends AsyncTask<Void, Station, Integer[]>{
+public class GetStationInformations extends AsyncTask<Void, BikeStation, Integer[]>{
 
     private Context c;
-    private Station s;
+    private BikeStation s;
     private Network n;
     private View v;
 
-    public GetStationInformations(Context c, Station s, Network n, View v) {
+    public GetStationInformations(Context c, BikeStation s, Network n, View v) {
         this.c = c;
         this.s = s;
         this.n = n;

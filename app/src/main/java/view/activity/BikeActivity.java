@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -17,7 +16,7 @@ import com.greenwav.greenwav.R;
 
 import java.util.Iterator;
 
-import model.Station;
+import model.BikeStation;
 import model.db.external.didier.GetStations;
 import model.db.internal.JamboDAO;
 import view.custom.adapter.BikeAdapter;
@@ -60,7 +59,7 @@ public class BikeActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private RecyclerView.LayoutManager layoutManager;
 
-    private Station returningStation;
+    private BikeStation returningStation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +107,7 @@ public class BikeActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        returningStation = (Station) parent.getItemAtPosition(position);
+        returningStation = (BikeStation) parent.getItemAtPosition(position);
         Intent returnIntent = new Intent();
         returnIntent.putExtra("STATION", returningStation);
         setResult(RESULT_OK, returnIntent);
@@ -123,12 +122,12 @@ public class BikeActivity extends AppCompatActivity implements AdapterView.OnIte
     public void run() {
         JamboDAO dao = new JamboDAO(BikeActivity.this);
         dao.open();
-        Iterator<Station> it = dao.findStation(currentNetwork.getIdBdd()).iterator();
+        Iterator<BikeStation> it = dao.findStation(currentNetwork.getIdBdd()).iterator();
         dao.close();
         float distance = 10000000;
-        Station nearest = null;
+        BikeStation nearest = null;
         while (it.hasNext()) {
-            Station s = it.next();
+            BikeStation s = it.next();
             if (currentLocation.distanceTo(s.getLocation()) < distance) {
                 distance = currentLocation.distanceTo(s.getLocation());
                 nearest = s;

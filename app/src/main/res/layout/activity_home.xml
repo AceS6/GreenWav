@@ -35,7 +35,7 @@
                 sothree:umanoDragView="@+id/slidingFragment"
                 android:gravity="bottom"
                 sothree:umanoInitialState="hidden"
-                sothree:umanoPanelHeight="68dp"
+                sothree:umanoPanelHeight="@dimen/panel_height"
                 sothree:umanoShadowHeight="4dp"
                 sothree:umanoParalaxOffset="200dp"
                 sothree:umanoOverlay="true">
@@ -132,11 +132,10 @@
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbarHidden"
         android:layout_height="?attr/actionBarSize"
-        android:elevation="@dimen/toolbar_elevation"
-        android:background="@android:color/transparent"
+        android:background="@color/primary"
         android:layout_width="match_parent"
-        android:visibility="invisible"
-        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:alpha="0"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"/>
 

@@ -13,11 +13,11 @@ import com.greenwav.greenwav.R;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import model.Borne;
+import model.ElectricalTerminal;
 import model.db.internal.JamboDAO;
 import view.custom.adapter.ElectricalAdapter;
 
-public class GetBornes extends AsyncTask<Void, Borne, Void>{
+public class GetBornes extends AsyncTask<Void, ElectricalTerminal, Void>{
 
     private GoogleMap gMap;
     private int network;
@@ -42,15 +42,15 @@ public class GetBornes extends AsyncTask<Void, Borne, Void>{
     protected Void doInBackground(Void... params) {
         JamboDAO dao = new JamboDAO(a);
         dao.open();
-        HashMap<Integer, Borne> bornes = dao.findBorne(network);
-        Iterator<Borne> it = bornes.values().iterator();
+        HashMap<Integer, ElectricalTerminal> bornes = dao.findBorne(network);
+        Iterator<ElectricalTerminal> it = bornes.values().iterator();
         while(it.hasNext()){
             publishProgress(it.next());
         }
         return null;
     }
 
-    protected void onProgressUpdate(Borne... result){
+    protected void onProgressUpdate(ElectricalTerminal... result){
         if(gMap != null){
             Log.d(result[0].getNom(), "BORNE");
             Marker m = gMap.addMarker(new MarkerOptions()

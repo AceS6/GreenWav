@@ -12,9 +12,11 @@ xmlns:android="http://schemas.android.com/apk/res/android"
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/panel_height"
         android:clickable="false"
-        android:id="@+id/quickViewSchedule">
+        android:id="@+id/quickViewSchedule"
+        android:elevation="@dimen/toolbar_elevation"
+        android:background="@color/primary">
 
         <RelativeLayout
             android:layout_width="wrap_content"
@@ -29,6 +31,7 @@ xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="false"
+                android:textColor="@android:color/white"
                 android:id="@+id/previousScheduleText"
                 android:layout_centerInParent="true"
                 android:visibility="invisible" />
@@ -57,6 +60,7 @@ xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="false"
+                android:textColor="@android:color/white"
                 android:id="@+id/nextScheduleText"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="10 minutes"
@@ -90,6 +94,7 @@ xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="false"
+                android:textColor="@android:color/white"
                 android:id="@+id/afterScheduleText"
                 android:layout_centerInParent="true"
                 android:text="-5 minutes"
