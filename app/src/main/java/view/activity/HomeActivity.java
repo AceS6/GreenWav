@@ -9,7 +9,6 @@ import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -49,10 +48,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import model.ElectricalTerminal;
 import model.Event;
 import model.Network;
-import model.PlaceInformation;
 import model.Route;
 import model.Schedule;
 import model.BikeStation;
@@ -98,8 +95,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     /**
      * Toolbar widget
      */
-    private Toolbar toolbar;
-    private Toolbar hiddenToolbar;
+    private Toolbar toolbar, mapToolbar, hiddenToolbar;
     /**
      * The map
      */
@@ -182,6 +178,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         radioButtons = new RadioButton[2];
 
         hiddenToolbar = (Toolbar) findViewById(R.id.toolbarHidden);
+        mapToolbar = (Toolbar) findViewById(R.id.mapToolbar);
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         int pref_service = Integer.parseInt(sharedPref.getString("pref_service", "0"));
@@ -208,35 +205,37 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (v > 0.6f) {
                         float res = v - 0.6f;
                         double pourcentage = (res / 0.4);
-                        toolbar.getBackground().setAlpha((int) (pourcentage * 255));
+                        hiddenToolbar.getBackground().setAlpha((int) (pourcentage * 255));
                     } else {
                         float res = v - 0.3f;
                         float pourcentage = (res / 0.3f);
-                        toolbar.setAlpha(pourcentage);
+                        hiddenToolbar.setAlpha(pourcentage);
                     }
                 } else {
                     float res = v - 0.3f;
                     float pourcentage = (res / 0.3f);
                     hiddenToolbar.setAlpha(pourcentage);
-                    if (res > 0) {
-                        initInterface(R.id.toolbarHidden);
+                    if (res > 0 && toolbar != hiddenToolbar) {
+                        initInterface(hiddenToolbar);
                     }
                 }
             }
 
             @Override
             public void onPanelCollapsed(View view) {
-                initInterface(R.id.toolbar);
+                initInterface(mapToolbar);
             }
 
             @Override
             public void onPanelExpanded(View view) {
-                toolbar.setAlpha(1);
+                hiddenToolbar.getBackground().setAlpha(255);
+                hiddenToolbar.setAlpha(1);
             }
 
             @Override
             public void onPanelAnchored(View view) {
-
+                hiddenToolbar.getBackground().setAlpha(0);
+                hiddenToolbar.setAlpha(1);
             }
 
             @Override
@@ -248,13 +247,36 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         floatingActionButton.setBaselineAlignBottom(true);
 
         if(savedInstanceState == null){
-            initInterface(R.id.toolbar);
+            initInterface(mapToolbar);
+            hiddenToolbar.getBackground().setAlpha(0);
         }
         else{
+            slidingPanel.setPanelState((SlidingUpPanelLayout.PanelState) savedInstanceState.getSerializable("PANEL_STATE"));
+            if(slidingPanel.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED){
+                hiddenToolbar.getBackground().setAlpha(255);
+                hiddenToolbar.setAlpha(1);
+            }
+            else if(slidingPanel.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED){
+                hiddenToolbar.getBackground().setAlpha(0);
+                hiddenToolbar.setAlpha(1);
+            }
+
             currentMarkerId = savedInstanceState.getInt("MARKER_ID", -1);
             currentMarkerClass = (Class) savedInstanceState.getSerializable("MARKER_CLASS");
             data = savedInstanceState.getParcelable("data");
-            initInterface(savedInstanceState.getInt("toolbar"));
+
+            int toolbar = savedInstanceState.getInt("toolbar");
+            switch(toolbar){
+                case R.id.toolbarHidden:
+                    initInterface(mapToolbar);
+                    initInterface(hiddenToolbar);
+                    break;
+                case R.id.mapToolbar:
+                    initInterface(hiddenToolbar);
+                    initInterface(mapToolbar);
+                    break;
+            }
+            markerAction();
         }
 
 
@@ -280,34 +302,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        // TODO Auto-generated method stub
-        super.onRestoreInstanceState(savedInstanceState);
-        slidingPanel.setPanelState((SlidingUpPanelLayout.PanelState) savedInstanceState.getSerializable("PANEL_STATE"));
-        if(slidingPanel.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED){
-            toolbar.getBackground().setAlpha(255);
-        }
-        currentMarkerId = savedInstanceState.getInt("MARKER_ID", -1);
-        currentMarkerClass = (Class) savedInstanceState.getSerializable("MARKER_CLASS");
-        data = savedInstanceState.getParcelable("data");
-        initInterface(savedInstanceState.getInt("toolbar"));
-        markerAction();
-    }
-
-    @Override
     public boolean onSearchRequested() {
         return super.onSearchRequested();
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        // Checks the orientation of the screen
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
-        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
-        }
     }
 
     @Override
@@ -478,12 +474,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapClick(LatLng latLng) {
-        /*
-        if (currentMarker != null) {
-            currentMarker = null;
-            cardUnreveal();
-        }
-        */
+        data = null;
+        currentMarkerId=-1;
+        currentMarker = null;
         slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
 
         bottomSheetVisible = false;
@@ -545,22 +538,21 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
      * Initializes the visual aspect of the activity
      * * @param id the id of the toolbar
      */
-    private void initInterface(final int id) {
-        toolbar = (Toolbar) findViewById(id);
-        if(id == R.id.toolbarHidden){
+    private void initInterface(Toolbar newToolbar) {
+        toolbar = newToolbar;
+        if(toolbar.getId() == R.id.toolbarHidden){
             Log.d("toolbar toolbarhidden", "toolbar toolbarhidden");
             //Toast.makeText(this, "toolbarHidden", Toast.LENGTH_SHORT).show();
-            toolbar.getBackground().setAlpha(0);
-            setSupportActionBar(toolbar);
+            setSupportActionBar(hiddenToolbar);
             ActionBar actionBar = getSupportActionBar();
             actionBar.setDisplayHomeAsUpEnabled(true);
-            toolbar.setTitle(data.getTitle());
+            hiddenToolbar.setTitle(data.getTitle());
         }
         else{
             //Toast.makeText(this, "toolbar", Toast.LENGTH_SHORT).show();
             Log.d("toolbar toolbar", "toolbar toolbar");
-            toolbar.setAlpha(1);
-            setSupportActionBar(toolbar);
+            setSupportActionBar(mapToolbar);
+            mapToolbar.getBackground().setAlpha(255);
             ActionBar actionBar = getSupportActionBar();
             actionBar.setDisplayHomeAsUpEnabled(true);
 

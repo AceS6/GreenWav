@@ -47,7 +47,7 @@ public class AboutActivity extends ActionBarActivity {
      * Initializes the visual aspect of the activity
      */
     private void initInterface() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.mapToolbar);
         toolbar.setTitle(this.getResources().getString(R.string.activity_network));
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();

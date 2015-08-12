@@ -34,7 +34,6 @@ import java.util.List;
 import model.Line;
 import model.Network;
 import model.db.external.didier.DownloadNetwork;
-import view.fragment.BikeFragment;
 import view.fragment.LineFragment;
 
 /**
@@ -79,7 +78,7 @@ public class NetworkConfigurationActivity extends ActionBarActivity{
 
 
     private void initInterface(){
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.mapToolbar);
         toolbar.setTitle(this.getResources().getString(R.string.activity_line));
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();

@@ -1,6 +1,5 @@
 package view.activity;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.location.Location;
@@ -22,7 +21,6 @@ import java.util.Iterator;
 
 import model.Stop;
 import model.db.internal.JamboDAO;
-import model.db.internal.async.GetLocalStops;
 import view.custom.adapter.StopAdapter;
 
 /**
@@ -83,7 +81,7 @@ public class StopActivity extends ActionBarActivity implements AdapterView.OnIte
     }
 
     private void initInterface() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.mapToolbar);
         toolbar.setTitle(getResources().getString(R.string.activity_stop));
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();

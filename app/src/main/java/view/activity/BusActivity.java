@@ -88,7 +88,7 @@ public class BusActivity extends AppCompatActivity implements BusActivityCallBac
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void initInterface() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.mapToolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);

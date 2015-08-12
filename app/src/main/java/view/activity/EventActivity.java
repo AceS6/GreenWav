@@ -32,7 +32,7 @@ public class EventActivity extends ActionBarActivity{
         Bundle extras = this.getIntent().getExtras();
         currentEvent = extras.getParcelable("EVENT");
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.mapToolbar);
         toolbar.setTitle(this.getResources().getString(R.string.activity_home));
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();

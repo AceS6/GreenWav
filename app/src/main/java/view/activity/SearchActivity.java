@@ -6,8 +6,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
-import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.util.Pair;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -19,14 +17,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.widget.AutoCompleteTextView;
-import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.greenwav.greenwav.R;
 
 import java.util.ArrayList;
 
-import model.User;
 import view.custom.adapter.GreenSearchAdapter;
 
 /**
@@ -66,7 +62,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnLayoutCh
                     RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             startActivityForResult(intent, SPEECH_RECOGNITION);
         }
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.mapToolbar);
         toolbar.setTitle("");
 
         textView = (AutoCompleteTextView) findViewById(R.id.textView);

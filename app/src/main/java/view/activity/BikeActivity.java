@@ -72,7 +72,7 @@ public class BikeActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     private void initInterface() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.mapToolbar);
         toolbar.setTitle(R.string.activity_bike);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();

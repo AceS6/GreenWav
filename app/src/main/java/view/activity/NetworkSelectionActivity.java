@@ -87,7 +87,7 @@ public class NetworkSelectionActivity extends ActionBarActivity {
      * Initializes the graphical interface of the activity
      */
     private void initInterface() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.mapToolbar);
         toolbar.setTitle(this.getResources().getString(R.string.activity_network));
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();

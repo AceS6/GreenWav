@@ -48,7 +48,7 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
         Bundle extras = this.getIntent().getExtras();
         User user = extras.getParcelable("USER");
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.mapToolbar);
         toolbar.setTitle(user.getName());
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();

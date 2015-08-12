@@ -73,7 +73,7 @@ public class ElectricalActivity extends AppCompatActivity implements AdapterView
     }
 
     private void initInterface() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.mapToolbar);
         toolbar.setTitle(R.string.activity_car);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();

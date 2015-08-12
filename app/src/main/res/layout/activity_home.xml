@@ -61,7 +61,7 @@
                 android:transitionName="search"
                 android:layout_margin="16dp">
                     <android.support.v7.widget.Toolbar
-                        android:id="@+id/toolbar"
+                        android:id="@+id/mapToolbar"
                         android:onClick="toolbarClick"
                         android:title="@string/action_search"
                         android:titleTextAppearance="@android:color/primary_text_light"
